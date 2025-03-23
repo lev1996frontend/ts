@@ -101,6 +101,7 @@ export const translatedDirections: Record<PlayerDirection, TranslatedMoveDirecti
 export type Player = {
 	readonly name: string // может не понадобится
 	readonly keys: number[]
+	readonly doorsOpened: number[]
 	row: number
 	column: number
 	lookDirection: MapDirection
@@ -176,7 +177,8 @@ export const directionPlayerToMap = (
 	}
 }
 
-export const cellDirectionsCount = (cell: Cell): MapDirection[] => {
+// TODO: проверка на наличие ключей
+export const cellAvailableDirections = (cell: Cell, keys: number[]): MapDirection[] => {
 	const directions: MapDirection[] = []
 
 	if (!cell.top) {

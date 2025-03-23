@@ -5,7 +5,7 @@ import {
 	Obstacle,
 	Player,
 	PlayerDirection,
-	cellDirectionsCount,
+	cellAvailableDirections,
 	directionMapToPlayer,
 	directionPlayerToMap,
 	reverseDirection,
@@ -19,7 +19,7 @@ export class OutError extends Error {
 }
 
 // dead end, fork, exit, key.
-type StepsEvent = 'dead_end' | 'fork' | 'exit' | 'key'
+type StepsEvent = 'dead_end' | 'fork' | 'exit' | 'key' | 'closed_door'
 
 export class Maze {
   #map: MazeMap
@@ -58,7 +58,7 @@ export class Maze {
 		const lookDirection = this.#player.lookDirection
 		const directions: PlayerDirection[] = []
 
-		const isKey = (obstacle: Obstacle): obstacle is number => typeof obstacle === 'number'
+		const isKey = (obstacle: Obstacle) => typeof obstacle === 'number'
 		const canPass = (obstacle: Obstacle) => (
 			!obstacle
 			|| isKey(obstacle) && this.#player.keys.includes(obstacle)
@@ -116,7 +116,17 @@ export class Maze {
         break
       }
 
-      const currentDirections = cellDirectionsCount(currentCell)
+      const currentDirections = cellAvailableDirections(currentCell)
+
+			/*
+				- пройти мимо или подходить к закрытой двери (добавить к маршруту)
+				- пройти через доступную дверь первый или не первый раз (добавить к маршруту)
+				-
+			*/
+
+			if (hasDoor(currentCell)) {
+				steps.push('door')
+			}
 
       if (currentDirections.length === 1) {
         steps.push('dead_end')
@@ -133,6 +143,11 @@ export class Maze {
         }
         break
       }
+
+			if (this.takeKeyIfExists(currentCell)) {
+				steps.push('key')
+				break
+			}
 
       const backDirection = reverseDirection(nextDirection)
       const lookDirection = nextDirection
@@ -226,18 +241,18 @@ export class Maze {
 
           // закрытая дверь, от которой у тебя нет ключа.
 
-          switch (currentCell) {
+          // switch (currentCell) {
 
-            case 'bottom':
-              description += 'Слева от тебя {ещё одна} закрытая дверь, от которой у тебя нет ключа.'
-              break
-            case 'right':
-              description += 'Cправа от тебя закрытая дверь, от которой у тебя нет ключа.'
-              break
-            case 'top':
-              description += 'Перед тобой закрытая дверь, от которой у тебя нет ключа.'
-              break
-            }
+          //   case 'bottom':
+          //     description += 'Слева от тебя {ещё одна} закрытая дверь, от которой у тебя нет ключа.'
+          //     break
+          //   case 'right':
+          //     description += 'Cправа от тебя закрытая дверь, от которой у тебя нет ключа.'
+          //     break
+          //   case 'top':
+          //     description += 'Перед тобой закрытая дверь, от которой у тебя нет ключа.'
+          //     break
+          //   }
 
           // (Перед тобой/Сбрава/Слева от тебя) закрытая дверь, от которой у тебя нет ключа.
           break
@@ -257,6 +272,8 @@ export class Maze {
           break
       }
     }
+		return description.replace(/((?<=^Ты),)/, '')
+	}
 
 	takeKeyIfExists(currentCell: Cell): boolean { // boolean
 		if (typeof currentCell.key === 'number') {
@@ -279,4 +296,4 @@ export class Maze {
 		)
 	}
 }
-}
+

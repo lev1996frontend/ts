@@ -4,7 +4,7 @@ import {
 	Obstacle,
 	Player,
 	PlayerDirection,
-	cellDirectionsCount,
+	cellAvailableDirections,
 	directionMapToPlayer,
 	directionPlayerToMap,
 	reverseDirection,
@@ -115,7 +115,7 @@ export class Maze {
 				break
 			}
 
-			const currentDirections = cellDirectionsCount(currentCell)
+			const currentDirections = cellAvailableDirections(currentCell)
 
 			if (currentDirections.length === 1) {
 				description += ' и оказываешься в тупике.'
