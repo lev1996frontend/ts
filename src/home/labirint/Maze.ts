@@ -6,8 +6,10 @@ import {
 	Player,
 	PlayerDirection,
 	cellDirectionsCount,
+	directionMapToPlayer,
 	directionPlayerToMap,
-	reverseDirection
+	reverseDirection,
+	stepsCase
 } from './types'
 
 export class OutError extends Error {
@@ -86,168 +88,175 @@ export class Maze {
 	}
 
 	// TODO: перемещение игрока
-	movePlayer(moveDirection: PlayerDirection): string {
-		let nextDirection = directionPlayerToMap(moveDirection, this.#player.lookDirection)
+  movePlayer(moveDirection: PlayerDirection): string {
+    const steps: (PlayerDirection | StepsEvent)[] = [moveDirection]
 
-		const steps: (MapDirection | StepsEvent)[] = [nextDirection]
+    let nextDirection = directionPlayerToMap(moveDirection, this.#player.lookDirection)
 
-		while (true) {
-			switch (nextDirection) {
-				case 'left':
-					this.#player.column--
-					break
-				case 'right':
-					this.#player.column++
-					break
-				case 'top':
-					this.#player.row--
-					break
-				case 'bottom':
-					this.#player.row++
-					break
-			}
+    while (true) {
+      switch (nextDirection) {
+        case 'left':
+          this.#player.column--
+          break
+        case 'right':
+          this.#player.column++
+          break
+        case 'top':
+          this.#player.row--
+          break
+        case 'bottom':
+          this.#player.row++
+          break
+      }
 
-			const currentCell = this.#map.cell(this.#player)
+      const currentCell = this.#map.cell(this.#player)
 
-			if (!currentCell) {
-				steps.push('exit') // ' и выходишь из лабиринта.'
-				break
-			}
+      if (!currentCell) {
+        steps.push('exit')
+        break
+      }
 
-			const currentDirections = cellDirectionsCount(currentCell)
+      const currentDirections = cellDirectionsCount(currentCell)
 
-			if (currentDirections.length === 1) {
-				steps.push('dead_end') //'и оказываешься в тупике.'
-				if (this.takeKeyIfExists(currentCell)) {
-					steps.push('key') // '\nНайден ключ.'
+      if (currentDirections.length === 1) {
+        steps.push('dead_end')
+        if (this.takeKeyIfExists(currentCell)) {
+          steps.push('key')
+        }
+        break
+      }
+
+      if (currentDirections.length > 2) {
+        steps.push('fork')
+        if (this.takeKeyIfExists(currentCell)) {
+          steps.push('key')
+        }
+        break
+      }
+
+      const backDirection = reverseDirection(nextDirection)
+      const lookDirection = nextDirection
+
+      nextDirection = currentDirections.filter(d => d !== backDirection)[0]!
+
+      // TODO: исправить описание текста
+      // Ты идёшь 2 шага прямо, поворачиваешь налево, поворачиваешь направо, идёшь 2 шага прямо и выходишь на развилку.
+      // Ты поровачиваешь направо, затем снова поворачиваешь направо и оказываешься в тупике.
+      // Ты возвращаешься назад,поворачиваешь налево и выходишь на развилку.
+      // В комнате ты находишь ключ.
+
+      /*
+        Задачи (лучше использовать цикл)
+        - прямой путь отмечаем "идёшь" и "возвращаешься"
+        - повороты отмечаем "поворачиваешь" и "затем снова поворачиваешь"
+        - сворачиваем шаги в направлении прямо
+
+        Пригодится: массив пройденных направлений, ключ подобран (да/нет), завершение (тупик, развилка, выход)
+      */
+
+      // + Ты идёшь прямо, направо, направо, назад и выходишь на развилку.
+      // + Ты идёшь направо, направо и оказываешься в тупике.
+
+      const passedDirection = directionMapToPlayer(nextDirection, lookDirection)
+      // const translatedPassedDirection = translatedDirections[passedDirection]
+      steps.push(passedDirection)
+
+    } // while end
+
+    this.#player.lookDirection = nextDirection
+
+    let description = 'Ты'
+
+    for (let i = 0; i < steps.length; i++) {
+      const step = steps[i]!
+
+      switch(step) {
+        case 'forward':
+          let stepsForward = 1
+          while (steps[i + 1] === 'forward') {
+            stepsForward++
+            i++
+          }
+          description += ', идешь '
+          if (stepsForward > 1) {
+            description +=  `${stepsCase(stepsForward)} ` // TODO: stepsCase(stepsForward)
 				}
-				break
-			}
+          description += 'прямо'
+          break
 
-			if (currentDirections.length > 2) {
-				steps.push('fork')// 'и выходишь на развилку.'
-				if (this.takeKeyIfExists(currentCell)) {
-					steps.push('key') // '\nНайден ключ.'
-				}
-				break
-			}
+        case 'back':
+          description += ' возвращаешься назад'
+          break
 
-			const backDirection = reverseDirection(nextDirection)
-			const lookDirection = nextDirection
+        case 'left':
+          description += ', '
+          if (steps[i - 1] === 'left') {
+            description += 'затем снова '
+          }
+          description += 'поворачиваешь налево'
+          break
 
-			nextDirection = currentDirections.filter(d => d !== backDirection)[0]!
+        case 'right':
+          description += ', '
+          if (steps[i - 1] === 'right') {
+            description += 'затем снова '
+          }
+          description += 'поворачиваешь направо'
+          break
 
-			// TODO: исправить описание текста
-			// Ты идёшь 2 шага прямо, поворачиваешь налево, поворачиваешь направо, идёшь 2 шага прямо и выходишь на развилку.
-			// Ты поровачиваешь направо, затем снова поворачиваешь направо и оказываешься в тупике.
-			// Ты возвращаешься назад,поворачиваешь налево и выходишь на развилку.
-			// В комнате ты находишь ключ.
+        case 'closed_door':
+          // TODO
+          const currentCell = this.#map.cell(this.#player)
 
-			/*
-				Задачи (лучше использовать цикл)
-				- прямой путь отмечаем "идёшь" и "возвращаешься"
-				- повороты отмечаем "поворачиваешь" и "затем снова поворачиваешь"
-				- сворачиваем шаги в направлении прямо
+          if (!currentCell) {
+            throw new Error('неожиданный выход из лабиринта')
+          }
 
-				Пригодится: массив пройденных направлений, ключ подобран (да/нет), завершение (тупик, развилка, выход)
-			*/
+          const isDoor = (obstacle: Obstacle) => (
+            typeof obstacle === 'number'
+          )
 
-			// + Ты идёшь прямо, направо, направо, назад и выходишь на развилку.
-			// + Ты идёшь направо, направо и оказываешься в тупике.
+          if (isDoor(currentCell.top)) {
+            const positionPlayer = nextDirection
 
-			// const passedDirection = directionMapToPlayer(nextDirection, lookDirection)
-			// const translatedPassedDirection = translatedDirections[passedDirection]
-			steps.push(nextDirection)
+            // 1. перевести положение двери с взгляда сверху на взгляд игрока
+            // 2. перевести направление на русский
+            // 3. приклеить постоянный текст
+          }
 
-		} // while end
+          // закрытая дверь, от которой у тебя нет ключа.
 
-		this.#player.lookDirection = nextDirection
+          switch (currentCell) {
 
+            case 'bottom':
+              description += 'Слева от тебя {ещё одна} закрытая дверь, от которой у тебя нет ключа.'
+              break
+            case 'right':
+              description += 'Cправа от тебя закрытая дверь, от которой у тебя нет ключа.'
+              break
+            case 'top':
+              description += 'Перед тобой закрытая дверь, от которой у тебя нет ключа.'
+              break
+            }
 
-		// <-
+          // (Перед тобой/Сбрава/Слева от тебя) закрытая дверь, от которой у тебя нет ключа.
+          break
 
-		// const descriptionArray = description.split(' ')
-		// const turnsLeft = description.replaceAll(/налево/g, 'поворачиваешь налево')
-		// for (let i = 0; i < descriptionArray.length; i++) {
-		// 	// let forwardSteps = 0
-		// 	const currentDirection = descriptionArray[i]
-		// 	if (currentDirection === 'прямо' && !currentDirection) {
-		// 		stepsForward.push(currentDirection)
-		// 	}
-		// 	if (currentDirection === 'налево' && !currentDirection) {
-		// 		turnsLeft
-		// 	}
-		// 	if (currentDirection === 'направо' && !currentDirection) {
-		// 		stepsForward.push(currentDirection)
-		// 	}
-		// 	if (currentDirection === 'назад' && !currentDirection) {
-		// 		stepsForward.push(currentDirection)
-		// 	}
-		// }
+        case 'dead_end':
+          description += ' и оказываешься в тупике.'
+          break
+        case 'fork':
+          description += ' и выходишь на развилку.'
+          break
+        case 'exit':
+          description += ' и выходишь из лабиринта'
+          break
 
-		// if (stepsForward.length > 1) {
-		// 	description.replaceAll(/прямо/g, `${stepsForward.length} шага прямо`)
-		// }
-
-
-
-
-		// if (translatedPassedDirection === 'прямо') {
-		// 	stepsForward++
-		// } else {
-		// 	if (stepsForward > 0) {
-		// 		description += `, идёшь ${stepsForward} шаг${stepsForward > 1 ? 'а' : ''} `
-		// 		stepsForward = 0
-		// 	}
-		// }
-
-		// if (moves[moves.length - 1] === translatedPassedDirection) {
-		// 	moves[moves.length - 1] = `затем снова поворачиваешь ${translatedPassedDirection}`
-		// } else {
-		// 		moves.push(`поворачиваешь ${translatedPassedDirection}`)
-		// }
-
-		// if(moves.length > 0) {
-		// 	description += `, ${moves.join(', ')}`
-		// }
-
-		// description += `, ${translatedPassedDirection}`
-
-
-		// const description = moves.join(' ')
-
-		let description = 'Ты '
-
-		let stepsForward = 0
-
-		for (const step of steps) {
-			switch(step) {
-				case 'top':
-
-					break
-				case 'bottom':
-					break
-				case 'left':
-					break
-				case 'right':
-					break
-				case 'dead_end':
-					description += 'и оказываешься в тупике.'
-					break
-				case 'fork':
-					description += 'и выходишь на развилку.'
-					break
-				case 'exit':
-					description += 'и выходишь из лабиринта'
-					break
-				case 'key':
-					break
-			}
-		}
-
-		return description
-
-	}
+        case 'key':
+          description += `\nПод ногами ты находишь ключ.`
+          break
+      }
+    }
 
 	takeKeyIfExists(currentCell: Cell): boolean { // boolean
 		if (typeof currentCell.key === 'number') {
@@ -257,16 +266,6 @@ export class Maze {
 		}
 		return false
 	}
-	// takeKeyIfExists(currentCell: Cell): string { // boolean
-	// 	if (typeof currentCell.key === 'number') {
-	// 		this.#player.keys.push(currentCell.key)
-	// 		delete currentCell.key
-
-	// 		return `\nВ комнате ты находишь ключ.`
-	// 	}
-
-	// 	return ''
-	// }
 
 	// TODO: remove
 	locationDescription(): string {
@@ -279,4 +278,5 @@ export class Maze {
 			`keys = ${this.#player.keys}`
 		)
 	}
+}
 }
