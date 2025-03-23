@@ -1,0 +1,46 @@
+{
+  "name": "mathass",
+  "displayName": "MathAss",
+  "description": "Syntax highlighting for Mathematics Assembly scripts.",
+  "version": "1.0.0",
+  "publisher": "Wizard",
+  "icon": "icons/omega-red.png",
+  "scripts": {
+    "build": "npx vsce package --allow-missing-repository -o mathass.vsix"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "mathass",
+        "aliases": [
+          "MathAss",
+          "mathass"
+        ],
+        "extensions": [
+          ".ma"
+        ],
+        "icon": {
+          "light": "./icons/omega-black.png",
+          "dark": "./icons/omega-white.png"
+        },
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "mathass",
+        "scopeName": "source.mathass",
+        "path": "./mathass.tmLanguage.json"
+      }
+    ]
+  },
+  "devDependencies": {
+    "vsce": "^2.15.0"
+  }
+}

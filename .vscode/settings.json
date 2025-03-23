@@ -1,0 +1,23 @@
+{
+	"debug.inlineBreakpoints.enabled": true,
+  "editor.tabSize": 2,
+
+  "editor.formatOnSave": false,
+  "actionButtons": {
+    "loadNpmCommands": false,
+    "commands": [
+      {
+        "tooltip": "build",
+        "name": "$(package)",
+        "command": "npm run --silent build"
+      },
+      {
+        "tooltip": "run",
+        "name": "$(run)",
+        "color": "green",
+        "command": "npm run --silent start"
+      }
+    ]
+  },
+  "typescript.tsdk": "node_modules\\typescript\\lib"
+}

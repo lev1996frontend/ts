@@ -1,0 +1,15 @@
+- телеграм уведомления
+@BotFather
+@userinfobot
+/newbot
+telegraf.js
+7715677899:AAEB432MXJ2c38SEBXb8G8NjZAWxdwzZOjo
+curl -X POST "https://api.telegram.org/bot<TOKEN>/sendMessage" -d "chat_id=<CHAT_ID>" -d "text=Your Notification Message Here"
+
+https://api.telegram.org/bot7715677899:AAEB432MXJ2c38SEBXb8G8NjZAWxdwzZOjo/sendMessage
+"chat_id=5057813537"
+"text=Наше сообщение"
+
+Id: 5057813537
+
+https://core.telegram.org/method/messages.sendMessage
