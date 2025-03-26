@@ -1,6 +1,8 @@
 // есть ли препятствие или дверь с номером ключа
 export type Obstacle = boolean | number
 
+export const isDoor = (obstacle: Obstacle) => typeof obstacle === 'number'
+
 export type Cell = Record<MapDirection, Obstacle> & {
 	key?: number
 }
@@ -60,7 +62,9 @@ export class MazeMap {
 
 }
 
-export type MapDirection = 'top' | 'bottom' | 'left' | 'right'
+export const mapDirections = ['top', 'bottom', 'left', 'right'] as const
+export type MapDirection = typeof mapDirections[number]
+
 export type PlayerDirection = 'forward' | 'back' | 'left' | 'right'
 export type TranslatedMoveDirection = 'прямо' | 'назад' | 'налево' | 'направо'
 
@@ -177,10 +181,15 @@ export const directionPlayerToMap = (
 	}
 }
 
-// TODO: проверка на наличие ключей
+// TODO: проверка на наличие ключей, текст про ключи и двери, чтобы текст менялся от открытия(1 или 2-й раз)
 export const cellAvailableDirections = (cell: Cell, keys: number[]): MapDirection[] => {
 	const directions: MapDirection[] = []
+	if (cell.key !== undefined) {
 
+		if (keys.includes(cell.key)) {
+
+		}
+	}
 	if (!cell.top) {
 		directions.push('top')
 	}

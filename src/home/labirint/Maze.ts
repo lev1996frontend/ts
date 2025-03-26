@@ -8,8 +8,11 @@ import {
 	cellAvailableDirections,
 	directionMapToPlayer,
 	directionPlayerToMap,
+	isDoor,
+	mapDirections,
 	reverseDirection,
-	stepsCase
+	stepsCase,
+  translatedDirections
 } from './types'
 
 export class OutError extends Error {
@@ -19,7 +22,7 @@ export class OutError extends Error {
 }
 
 // dead end, fork, exit, key.
-type StepsEvent = 'dead_end' | 'fork' | 'exit' | 'key' | 'closed_door'
+type StepsEvent = 'dead_end' | 'fork' | 'exit' | 'key' //| 'closed_door'
 
 export class Maze {
   #map: MazeMap
@@ -116,17 +119,28 @@ export class Maze {
         break
       }
 
-      const currentDirections = cellAvailableDirections(currentCell)
+      const currentDirections = cellAvailableDirections(currentCell, this.#player.keys)
 
 			/*
 				- пройти мимо или подходить к закрытой двери (добавить к маршруту)
 				- пройти через доступную дверь первый или не первый раз (добавить к маршруту)
 				-
 			*/
+      const hasDoor = (cell: Cell): boolean => {
+        return typeof cell.top === 'number' ||typeof cell.bottom === 'number' || typeof cell.left === 'number' || typeof cell.right === 'number'
+      }
+      const isDoorClosed = (direction: MapDirection) => {
+        const obstacle = currentCell[direction]
+        return typeof obstacle === 'number'
+      }
 
-			if (hasDoor(currentCell)) {
-				steps.push('door')
-			}
+			// if (hasDoor(currentCell)) {
+      //   if (isDoorClosed('top') || isDoorClosed('bottom') || isDoorClosed('right') || isDoorClosed('left')) {
+      //     steps.push('closed_door') // ?
+      //   } else {
+      //     // TODO: сообщить про открытую дверь
+      //   }
+			// }
 
       if (currentDirections.length === 1) {
         steps.push('dead_end')
@@ -219,28 +233,8 @@ export class Maze {
           description += 'поворачиваешь направо'
           break
 
-        case 'closed_door':
+        // case 'closed_door':
           // TODO
-          const currentCell = this.#map.cell(this.#player)
-
-          if (!currentCell) {
-            throw new Error('неожиданный выход из лабиринта')
-          }
-
-          const isDoor = (obstacle: Obstacle) => (
-            typeof obstacle === 'number'
-          )
-
-          if (isDoor(currentCell.top)) {
-            const positionPlayer = nextDirection
-
-            // 1. перевести положение двери с взгляда сверху на взгляд игрока
-            // 2. перевести направление на русский
-            // 3. приклеить постоянный текст
-          }
-
-          // закрытая дверь, от которой у тебя нет ключа.
-
           // switch (currentCell) {
 
           //   case 'bottom':
@@ -255,7 +249,7 @@ export class Maze {
           //   }
 
           // (Перед тобой/Сбрава/Слева от тебя) закрытая дверь, от которой у тебя нет ключа.
-          break
+          // break
 
         case 'dead_end':
           description += ' и оказываешься в тупике.'
@@ -272,6 +266,28 @@ export class Maze {
           break
       }
     }
+
+    const currentCell = this.#map.cell(this.#player)
+
+    if (currentCell) {
+      mapDirections.reduce((isFirstDoor, direction) => {
+        if (isDoor(currentCell[direction])) {
+          const doorDirection = directionMapToPlayer(direction, this.#player.lookDirection)
+          const translatedDoorDirection = translatedDirections[doorDirection]
+          description += (
+            ' ' +
+            translatedDoorDirection.charAt(0).toUpperCase() + translatedDoorDirection.slice(1) +
+            ' от тебя' +
+            (!isFirstDoor ? ` ещё одна` : '') +
+            ` закрытая дверь, от которой у тебя нет ключа.`
+          )
+          return false
+        }
+        return isFirstDoor
+      }, true)
+    }
+
+
 		return description.replace(/((?<=^Ты),)/, '')
 	}
 

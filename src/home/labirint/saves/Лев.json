@@ -3,5 +3,8 @@
   "row": 10,
   "column": 9,
   "lookDirection": "right",
-  "keys": []
+  "keys": [
+    1
+  ],
+  "doorsOpened": []
 }

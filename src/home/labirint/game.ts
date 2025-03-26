@@ -21,15 +21,15 @@ export const startGame = async () => {
 		// 		return savedPlayer
 		// 	}
 		// }
-		return { name: playerName, row: 10, column: 1, lookDirection: 'right', keys: [] }
+		return { name: playerName, row: 10, column: 1, lookDirection: 'right', keys: [], doorsOpened: [] }
 		// TODO: row и column вычислять автоматически
 		// TODO: lookDirection вычислять автоматически
 	})()
 
 	const maze = new Maze(map, player)
 
-	if (maze.atStart) { // TODO: определить, что мы начинаем на старте
-		// TODO: moveDirection вычислять автоматически
+	if (maze.atStart) {
+		await consoleIO.print('Добро пожаловать в лабиринт! Попробуй найти выход и не вернуться на старт ;)')
 		const movingDescription = maze.movePlayer('forward')
 
 		await file.write(player)
@@ -38,7 +38,7 @@ export const startGame = async () => {
 	}
 
   while (true) {
-    await consoleIO.print(maze.locationDescription()) // TODO: remove
+    console.log(maze.locationDescription()) // TODO: remove
 
 		const availableDirections = maze.getMoveDirections()
 
