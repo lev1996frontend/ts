@@ -65,8 +65,11 @@ export class MazeMap {
 export const mapDirections = ['top', 'bottom', 'left', 'right'] as const
 export type MapDirection = typeof mapDirections[number]
 
-export type PlayerDirection = 'forward' | 'back' | 'left' | 'right'
-export type TranslatedMoveDirection = 'прямо' | 'назад' | 'налево' | 'направо'
+export const playerDirection = [ 'forward', 'back', 'left', 'right'] as const
+export type PlayerDirection = typeof playerDirection[number]
+
+export const translatedMoveDirection = ['прямо', 'назад', 'налево', 'направо'] as const
+export type TranslatedMoveDirection = typeof translatedMoveDirection[number]
 
 export const reverseDirection = (direction: MapDirection): MapDirection => {
 	switch(direction) {
@@ -95,12 +98,12 @@ export const parseDirection = (direction: TranslatedMoveDirection): PlayerDirect
 	throw new Error('Таких направлений нет')
 }
 
-export const translatedDirections: Record<PlayerDirection, TranslatedMoveDirection> = {
+export const translatedDirections = {
 	forward: 'прямо',
 	back: 'назад',
 	left: 'налево',
 	right: 'направо',
-}
+} satisfies Record<PlayerDirection, TranslatedMoveDirection>
 
 export type Player = {
 	readonly name: string // может не понадобится
@@ -181,26 +184,13 @@ export const directionPlayerToMap = (
 	}
 }
 
-// TODO: проверка на наличие ключей, текст про ключи и двери, чтобы текст менялся от открытия(1 или 2-й раз)
 export const cellAvailableDirections = (cell: Cell, keys: number[]): MapDirection[] => {
 	const directions: MapDirection[] = []
-	if (cell.key !== undefined) {
 
-		if (keys.includes(cell.key)) {
-
+	for (const mapDir of mapDirections) {
+		if (!cell[mapDir] || isDoor(cell[mapDir]) && keys.includes(cell[mapDir])) {
+			directions.push(mapDir)
 		}
-	}
-	if (!cell.top) {
-		directions.push('top')
-	}
-	if (!cell.bottom) {
-		directions.push('bottom')
-	}
-	if (!cell.left) {
-		directions.push('left')
-	}
-	if (!cell.right) {
-		directions.push('right')
 	}
 
   return directions
