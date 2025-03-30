@@ -84,7 +84,7 @@ export const map = new MazeMap([
 		// 4.8
 		{	top: false, bottom: false, left: true, right: false },
 		// 4.9
-		{	top: false, bottom: true, left: false, right: false },
+		{	top: false, bottom: true, left: false, right: true },
 		// 4.10
 		{	top: false, bottom: false, left: true, right: true },
 	],
@@ -204,7 +204,7 @@ export const map = new MazeMap([
 		// 10.2
 		{	top: false, bottom: true, left: false, right: true },
 		// 10.3
-		{	top: true, bottom: true, left: true, right: false, key: 1 },
+		{	top: true, bottom: true, left: true, right: false },
 		// 10.4
 		{	top: false, bottom: true, left: false, right: true },
 		// 10.5

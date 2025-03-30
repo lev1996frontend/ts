@@ -1,11 +1,8 @@
 {
   "name": "Лев",
-  "row": 6,
-  "column": 10,
-  "lookDirection": "top",
-  "keys": [
-    1,
-    2
-  ],
+  "row": 4,
+  "column": 8,
+  "lookDirection": "left",
+  "keys": [],
   "doorsOpened": []
 }

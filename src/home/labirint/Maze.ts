@@ -1,17 +1,19 @@
 import {
-	Cell,
-	MapDirection,
-	MazeMap,
-	Obstacle,
-	Player,
-	PlayerDirection,
-	cellAvailableDirections,
-	directionMapToPlayer,
-	directionPlayerToMap,
-	isDoor,
-	mapDirections,
-	reverseDirection,
-	stepsCase,
+  Cell,
+  MapDirection,
+  MazeMap,
+  Obstacle,
+  Player,
+  PlayerDirection,
+  TranslatedMoveDirection,
+  cellAvailableDirections,
+  directionMapToPlayer,
+  directionPlayerToMap,
+  isDoor,
+  mapDirections,
+  playerDirections,
+  reverseDirection,
+  stepsCase,
   translatedDirections
 } from './types'
 
@@ -22,7 +24,7 @@ export class OutError extends Error {
 }
 
 // dead end, fork, exit, key.
-type StepsEvent = 'dead_end' | 'fork' | 'exit' | 'key' | 'open_door'
+type StepsEvent = 'dead_end' | 'fork' | 'exit' | 'key' | 'open_door' | 'closed_door'
 
 export class Maze {
   #map: MazeMap
@@ -99,6 +101,7 @@ export class Maze {
 
     while (true) {
 
+
       switch (nextDirection) {
         case 'left':
           this.#player.column--
@@ -129,27 +132,6 @@ export class Maze {
 
       const currentDirections = cellAvailableDirections(currentCell, this.#player.keys)
 
-			/*
-				- пройти мимо или подходить к закрытой двери (добавить к маршруту)
-				- пройти через доступную дверь первый или не первый раз (добавить к маршруту)
-				-
-			*/
-      const hasDoor = (cell: Cell): boolean => {
-        return typeof cell.top === 'number' || typeof cell.bottom === 'number' || typeof cell.left === 'number' || typeof cell.right === 'number'
-      }
-      const isDoorClosed = (direction: MapDirection) => {
-        const obstacle = currentCell[direction]
-        return typeof obstacle === 'number'
-      }
-
-			// if (hasDoor(currentCell)) {
-      //   if (isDoorClosed('top') || isDoorClosed('bottom') || isDoorClosed('right') || isDoorClosed('left')) {
-      //     steps.push('closed_door') // ?
-      //   } else {
-      //     // TODO: сообщить про открытую дверь
-      //   }
-			// }
-
       if (currentDirections.length === 1) {
         steps.push('dead_end')
         if (this.takeKeyIfExists(currentCell)) {
@@ -170,6 +152,18 @@ export class Maze {
 				steps.push('key')
 				break
 			}
+
+
+      const isDoorClosed = (door: number) => {
+        return !this.#player.keys.includes(door)
+      }
+      const hasClosedDoor = mapDirections.some(direction =>
+        isDoor(currentCell[direction])
+        && isDoorClosed(currentCell[direction])
+      )
+      if (hasClosedDoor) {
+        steps.push('closed_door')
+      }
 
       const lookDirection = nextDirection
 
@@ -195,6 +189,7 @@ export class Maze {
 
       const passedDirection = directionMapToPlayer(nextDirection, lookDirection)
       // const translatedPassedDirection = translatedDirections[passedDirection]
+
       steps.push(passedDirection)
 
     } // while end
@@ -240,23 +235,23 @@ export class Maze {
           description += 'поворачиваешь направо'
           break
 
-        // case 'closed_door':
-          // TODO
-          // switch (currentCell) {
+        case 'closed_door':
+          description += ` мимо закрытой двери`
 
-          //   case 'bottom':
-          //     description += 'Слева от тебя {ещё одна} закрытая дверь, от которой у тебя нет ключа.'
-          //     break
-          //   case 'right':
-          //     description += 'Cправа от тебя закрытая дверь, от которой у тебя нет ключа.'
-          //     break
-          //   case 'top':
-          //     description += 'Перед тобой закрытая дверь, от которой у тебя нет ключа.'
-          //     break
-          //   }
+          const currentCell = this.#map.cell(this.#player)! // !
+          const translatedDirections = {
+            forward: 'перед тобой',
+            left: 'слева',
+            right: 'справа',
+          } satisfies Record<Exclude<PlayerDirection, 'back'>, string>
 
-          // (Перед тобой/Сбрава/Слева от тебя) закрытая дверь, от которой у тебя нет ключа.
-          // break
+          for (const playerDirection of playerDirections) {
+            const direction = directionPlayerToMap(playerDirection, this.#player.lookDirection)
+            if (playerDirection !== 'back' && isDoor(currentCell[direction])) {
+              description += ` ${translatedDirections[playerDirection]} `
+            }
+          }
+          break
 
         case 'open_door':
           if (this.#player.doorsOpened.includes(passedDoors.shift()!)) {
@@ -322,7 +317,7 @@ export class Maze {
 			`column = ${this.#player.column}, `+
 			`look direction = ${this.#player.lookDirection}, `+
 			`directions = ${this.getMoveDirections()}, ` +
-			`keys = ${this.#player.keys}`
+			`keys = ${this.#player.keys || 0}`
 		)
 	}
 }

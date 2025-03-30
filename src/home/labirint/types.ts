@@ -65,8 +65,8 @@ export class MazeMap {
 export const mapDirections = ['top', 'bottom', 'left', 'right'] as const
 export type MapDirection = typeof mapDirections[number]
 
-export const playerDirection = [ 'forward', 'back', 'left', 'right'] as const
-export type PlayerDirection = typeof playerDirection[number]
+export const playerDirections = [ 'forward', 'back', 'left', 'right'] as const
+export type PlayerDirection = typeof playerDirections[number]
 
 export const translatedMoveDirection = ['прямо', 'назад', 'налево', 'направо'] as const
 export type TranslatedMoveDirection = typeof translatedMoveDirection[number]
