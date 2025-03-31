@@ -252,7 +252,7 @@ export class Maze {
 
           // (Перед тобой/Сбрава/Слева от тебя) закрытая дверь, от которой у тебя нет ключа.
           // мимо закрытой двери справа
-          description += ` мимо закрытой двери`
+          description += `, мимо закрытой двери`
 
           const currentCell = this.#map.cell(this.#player)! // !
           const translatedDirections = {

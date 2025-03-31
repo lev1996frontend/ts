@@ -1,6 +1,8 @@
 // есть ли препятствие или дверь с номером ключа
 export type Obstacle = boolean | number
 
+export type Direction = 'forward'| 'left'| 'right'
+
 export const isDoor = (obstacle: Obstacle) => typeof obstacle === 'number'
 
 export type Cell = Record<MapDirection, Obstacle> & {
@@ -209,3 +211,19 @@ export const stepsCase = (stepsForward: number): string => {
 	}
 }
 
+// не хватает проверок кординаты
+export const getStartLookDirection = (startPosition: Position): MapDirection => {
+	if (startPosition.column === 0) {
+		return 'right'
+	}
+
+	if (startPosition.row === 0) {
+		return 'bottom'
+	}
+
+	if (startPosition.column > startPosition.row) {
+		return 'left'
+	}
+
+	return 'top'
+}
