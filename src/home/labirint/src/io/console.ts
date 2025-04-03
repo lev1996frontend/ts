@@ -1,7 +1,10 @@
 import readline from 'node:readline'
 
-import { InputOutput } from './types'
-
+export interface InputOutput {
+	input(question?: string): Promise<string>
+	print(message?: string): Promise<void>
+	close(): void
+}
 
 export class ConsoleInputOutput implements InputOutput {
 	readonly #terminal: readline.Interface

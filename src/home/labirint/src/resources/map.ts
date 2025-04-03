@@ -1,4 +1,5 @@
-import { MazeMap } from './types'
+import { MazeMap } from "../maze/MazeMap";
+
 
 export const map = new MazeMap([
 	[ // 1.1
