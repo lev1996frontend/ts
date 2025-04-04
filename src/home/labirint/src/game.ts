@@ -1,14 +1,12 @@
-
 import { ConsoleInputOutput } from './io/console'
 import { SavesFile } from './io/files'
-import { Maze } from './maze/Maze copy'
+import { MazeGame } from './maze/MazeGame'
 import { Player } from './player'
 import { map } from './resources/map'
 import { parseDirection, translateDirections } from './resources/texts'
 
 export const startGame = async () => {
 	const consoleIO = new ConsoleInputOutput()
-
 	const playerName = await consoleIO.input('Ваше имя: ')
 	const file = new SavesFile<Player>(playerName)
 
@@ -30,13 +28,13 @@ export const startGame = async () => {
 			name: playerName,
 			row: map.start.row,
 			column: map.start.column,
-			lookDirection: getStartLookDirection(map.start),
+			lookDirection: map.getStartLookDirection(),
 			keys: [],
 			doorsOpened: [],
 		}
 	})()
 
-	const maze = new Maze(map, player)
+	const maze = new MazeGame(map, player)
 
 	if (maze.atStart) {
 		await consoleIO.print('Добро пожаловать в лабиринт! Попробуй найти выход и не вернуться на старт ;)')
@@ -47,7 +45,7 @@ export const startGame = async () => {
 		await consoleIO.print(movingDescription)
 	}
 	else {
-		const availableDirections = maze.getMoveDirections()
+		const availableDirections = maze.getAvailableMoveDirections()
 
 		if (!maze.inMaze) {
 			return await consoleIO.print(
@@ -67,7 +65,7 @@ export const startGame = async () => {
   while (true) {
     console.log(maze.locationDescription()) // TODO: remove
 
-		const availableDirections = maze.getMoveDirections()
+		const availableDirections = maze.getAvailableMoveDirections()
 
 		const translatedChooseDirection = await consoleIO.choiceMenu(
 			'Куда пойдёшь дальше?',

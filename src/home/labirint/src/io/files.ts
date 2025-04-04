@@ -1,12 +1,14 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
+const savesDir = path.resolve(__dirname, `../../saves`)
+
 export class SavesFile<T> {
 	readonly #filePath: string
 	constructor (playerName: string) {
-		this.#filePath = path.resolve(__dirname, `./saves/${playerName}.json`)
+		this.#filePath = path.resolve(savesDir, `${playerName}.json`)
 	}
-	
+
 	async read(): Promise<T | null> {
 		try {
 			const json = await fs.readFile(this.#filePath, 'utf8')
@@ -16,7 +18,7 @@ export class SavesFile<T> {
 			return null
 		}
 	}
-	
+
 	async write(data: T): Promise<void> {
 		try {
 			const json = JSON.stringify(data, null , 2)

@@ -1,8 +1,8 @@
 import { Player } from '../player'
 import { directionMapToPlayer, directionPlayerToMap, mapDirections, PlayerDirection, playerDirections, reverseDirection } from './directions'
-import { isDoor, Location, Obstacle } from './location'
+import { availableDirections, isDoor, Location, Obstacle } from './location'
 import { MazeMap } from './MazeMap'
-import * as texts from '../resources/texts'
+import { createDescription } from '../resources/texts'
 
 export class OutError extends Error {
 	constructor() {
@@ -66,7 +66,9 @@ export class MazeGame {
 
 	// TODO: перемещение игрока
   movePlayer(moveDirection: PlayerDirection): string {
-    let description = 'Ты'
+    const texts = createDescription()
+
+    let description = ''
 
     let prevDirection: PlayerDirection | undefined
 
@@ -96,9 +98,11 @@ export class MazeGame {
           prevDirection === passedPlayerDirection
         )
       }
-
-      if (passedPlayerDirection === 'forward') {
-        description += texts.forwardSteps(1) // TODO
+      else if (passedPlayerDirection === 'forward') {
+        description += texts.forwardSteps()
+      }
+      else {
+        description += texts.moveBack
       }
 
       const currentLocation = this.#map.cell(this.#player)
@@ -121,7 +125,7 @@ export class MazeGame {
         description += texts.doorPassed(doorIsOpen)
       }
 
-      const currentDirections = cellAvailableDirections(currentLocation, this.#player.keys)
+      const currentDirections = availableDirections(currentLocation, this.#player.keys)
 
       if (currentDirections.length === 1) {
         description += texts.deadEnd
@@ -151,15 +155,15 @@ export class MazeGame {
         description += texts.passedByClosedDoor(currentLocation, this.#player.lookDirection)
       }
 
-      nextDirection = currentDirections.filter(d => d !== backDirection)[0]!
-
       this.#player.lookDirection = nextDirection
+
+      nextDirection = currentDirections.filter(d => d !== backDirection)[0]!
     }
 
-		return description.replace(/((?<=^Ты),)/, '')
+    this.#player.lookDirection = nextDirection
+
+		return texts.withStartText(description)
 	}
-
-
 
 	takeKeyIfExists(currentLocation: Location): boolean { // boolean
 		if (typeof currentLocation.key === 'number') {

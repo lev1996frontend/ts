@@ -1,33 +1,56 @@
 import {
   directionMapToPlayer,
   directionPlayerToMap,
-   MapDirection,
-   mapDirections,
-   PlayerDirection,
-   playerDirections
-  } from '../maze/directions';
+  MapDirection,
+  mapDirections,
+  PlayerDirection,
+  playerDirections
+} from '../maze/directions'
+
 import {
   isDoor,
   Location
-} from '../maze/location';
-import { Player } from '../player';
+} from '../maze/location'
 
+import { Player } from '../player'
+
+// TODO: ?
+export const translatedMoveDirection = ['прямо', 'назад', 'налево', 'направо'] as const
+export type TranslatedMoveDirection = typeof translatedMoveDirection[number]
+export const translatedDirections = {
+	forward: 'прямо',
+	back: 'назад',
+	left: 'налево',
+	right: 'направо',
+} satisfies Record<PlayerDirection, TranslatedMoveDirection>
+export const translateDirections = (directions: PlayerDirection[]) => {
+	return directions.map(dir => translatedDirections[dir])
+}
+export const parseDirection = (direction: TranslatedMoveDirection): PlayerDirection => {
+	for (const key in translatedDirections) {
+		const playerDirection = key as PlayerDirection
+		if (translatedDirections[playerDirection] === direction) {
+			return playerDirection
+		}
+	}
+	throw new Error('Таких направлений нет')
+}
 
 // Move Player
 
-export const exit = ' и выходишь из лабиринта'
+const exit = ' и выходишь из лабиринта'
 
-export const doorPassed = (doorIsOpen: boolean): string => {
+const doorPassed = (doorIsOpen: boolean): string => {
   return doorIsOpen
     ? ' (проходишь через открытую дверь)'
     : ' (открываешь ключом и проходишь закрытую дверь)'
 }
 
-export const deadEnd = ' и оказываешься в тупике.'
-export const fork = ' и выходишь на развилку.'
+const deadEnd = ' и оказываешься в тупике.'
+const fork = ' и выходишь на развилку.'
 
-export const keyFound = '\nПод ногами ты находишь ключ.'
-export const keyFoundStop = ' и под ногами находишь ключ.'
+const keyFound = '\nПод ногами ты находишь ключ.'
+const keyFoundStop = ' и под ногами находишь ключ.'
 
 const translatedNextDirections = {
   forward: 'перед тобой',
@@ -35,7 +58,7 @@ const translatedNextDirections = {
   right: 'справа',
 } satisfies Record<Exclude<PlayerDirection, 'back'>, string>
 
-export const passedByClosedDoor = (currentCell: Location, lookDirection: MapDirection): string => {
+const passedByClosedDoor = (currentCell: Location, lookDirection: MapDirection): string => {
   let description = ` мимо закрытой двери`
 
   for (const playerDirection of playerDirections) {
@@ -48,18 +71,7 @@ export const passedByClosedDoor = (currentCell: Location, lookDirection: MapDire
   return description
 }
 
-export const translatedMoveDirection = ['прямо', 'назад', 'налево', 'направо'] as const
-
-export type TranslatedMoveDirection = typeof translatedMoveDirection[number]
-
-export const translatedDirections = {
-	forward: 'прямо',
-	back: 'назад',
-	left: 'налево',
-	right: 'направо',
-} satisfies Record<PlayerDirection, TranslatedMoveDirection>
-
-export const closedDoorsFound = (currentCell: Location, player: Player): string => {
+const closedDoorsFound = (currentCell: Location, player: Player): string => {
   let hasDoors = false
   let description = ' '
 
@@ -92,7 +104,11 @@ const stepsCase = (stepsForward: number): string => {
 	}
 }
 
-export const forwardSteps = (steps: number): string  => {
+const forwardSteps = (): string  => {
+  return ''
+}
+
+const forwardStepsText = (steps: number): string  => {
   let description = ', идешь '
   if (steps > 1) {
     description += `${steps} ${stepsCase(steps)} `
@@ -102,7 +118,7 @@ export const forwardSteps = (steps: number): string  => {
   return description
 }
 
-export const turnStep = (direction: 'left' | 'right', repeat: boolean): string => {
+const turnStep = (direction: 'left' | 'right', repeat: boolean): string => {
   let description = ', '
   if (repeat) {
     description += 'затем снова '
@@ -115,16 +131,47 @@ export const turnStep = (direction: 'left' | 'right', repeat: boolean): string =
   return description
 }
 
-export const translateDirections = (directions: PlayerDirection[]) => {
-	return directions.map(dir => translatedDirections[dir])
-}
-export const parseDirection = (direction: TranslatedMoveDirection): PlayerDirection => {
-	for (const key in translatedDirections) {
-		const playerDirection = key as PlayerDirection
-		if (translatedDirections[playerDirection] === direction) {
-			return playerDirection
-		}
-	}
-	throw new Error('Таких направлений нет')
+const moveBack = ' разворачиваешься назад'
+
+const withStartText = (text: string) => {
+  return 'Ты' + text.replace(/^,/, '')
 }
 
+export const createDescription = () => {
+  let forwardStepsCount = 0
+
+  return new Proxy({
+    exit,
+    doorPassed,
+    deadEnd,
+    fork,
+    keyFound,
+    keyFoundStop,
+    passedByClosedDoor,
+    closedDoorsFound,
+    forwardSteps,
+    turnStep,
+    moveBack,
+    withStartText,
+  } satisfies Record<string, string | ((...args: any[]) => string)>, {
+    get(target, key) {
+      let description = ''
+
+      if (key === forwardSteps.name) {
+        forwardStepsCount++
+      } else if (forwardStepsCount) {
+        description += forwardStepsText(forwardStepsCount)
+        forwardStepsCount = 0
+      }
+
+      const text = (target as any)[key]
+
+      if (typeof text === 'function') {
+        return (...args: any[]) => {
+          return description + text(...args)
+        }
+      }
+      return description + text
+    }
+  })
+}

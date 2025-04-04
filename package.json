@@ -4,7 +4,7 @@
   "scripts": {
     "start": "chcp 65001 && ts-node src/main.ts",
     "build": "tsc",
-    "test": "jest"
+    "test": "jest src/home/labirint/tests/maze.test.ts"
   },
   "dependencies": {
     "@types/moment": "^2.13.0",
