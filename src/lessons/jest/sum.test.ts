@@ -7,10 +7,10 @@ describe('sum', () => {
   // beforeEach
   // afterEach
   // afterAll
-  it('1 + 2', () => {
+  test('1 + 2', () => {
     expect(sum(1, 2)).toBe(3)
   })
-  it.skip('1 + (-2)', () => {
+  test.skip('1 + (-2)', () => {
     expect(sum(1, -2)).toBe(-1)
   })
 })

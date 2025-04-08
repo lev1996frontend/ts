@@ -1,4 +1,4 @@
-// import './lib'
+import './lib'
 
 // import { inputFromRange } from './home/lib'
 // print(inputFromRange(0, 5, '0 для отмены'))

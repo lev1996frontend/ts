@@ -1,12 +1,11 @@
-import { ConsoleInputOutput } from './io/console'
+import { ConsoleInputOutput, InputOutput } from './io/console'
 import { SavesFile } from './io/files'
 import { MazeGame } from './maze/MazeGame'
 import { Player } from './player'
 import { map } from './resources/map'
 import { parseDirection, translateDirections } from './resources/texts'
 
-export const startGame = async () => {
-	const consoleIO = new ConsoleInputOutput()
+export const startGame = async (consoleIO: InputOutput) => {
 	const playerName = await consoleIO.input('Ваше имя: ')
 	const file = new SavesFile<Player>(playerName)
 
