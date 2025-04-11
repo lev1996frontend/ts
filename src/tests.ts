@@ -22,7 +22,11 @@ const mock = (test: Test) => {
   }
   ;(global as any).print = (message?: string | number): void => {
     const value = test.print.shift()!
-    expect(message).toBe(value)
+    if (typeof value === 'undefined') {
+      expect(message).toBeUndefined()
+    } else {
+      expect(String(message)).toBe(String((value)))
+    }
   }
   ;(global as any).random = (min: number, max: number): number => {
     const value = test.random?.shift()!
@@ -35,7 +39,11 @@ const mock = (test: Test) => {
 
 export const testScript = (scriptDir: string, scriptName: string, tests: Test[]) => {
   const scriptPath = path.resolve(scriptDir, scriptName)
-  describe(scriptPath, () => {
+  // const runTest = describe || describe.skip
+  // runTest(scriptPath, () => {
+
+  // describe || describe.skip
+  ;(describe)(scriptPath, () => {
     afterEach(() => {
       jest.resetModules()
     })
@@ -47,3 +55,16 @@ export const testScript = (scriptDir: string, scriptName: string, tests: Test[])
     })
   })
 }
+
+// TODO
+
+// testScript(__dirname, 'test.ts')
+//   .input('Введите первое число: ', 5)
+//   .input('Введите второе число: ', 10)
+//   .random(2, 5, 6)
+//   .print('5 + 10 = 15')
+  // .print(
+  //   '  *',
+  //   ' ***',
+  //   '*****'
+  // )

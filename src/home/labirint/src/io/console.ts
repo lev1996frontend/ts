@@ -3,6 +3,10 @@ import readline from 'node:readline'
 export interface InputOutput {
 	input(question?: string): Promise<string>
 	print(message?: string): Promise<void>
+	choiceMenu<TChoice extends string>(
+		question: string,
+		choice: readonly TChoice[]
+	): Promise<TChoice>
 	close(): void
 }
 
@@ -62,6 +66,9 @@ class TelegramOutputInput implements InputOutput {
 		throw new Error('not implemented')
 	}
 	input(question?: string): Promise<string> {
+		throw new Error('not implemented')
+	}
+	choiceMenu(): Promise<any> {
 		throw new Error('not implemented')
 	}
 	close(): void {

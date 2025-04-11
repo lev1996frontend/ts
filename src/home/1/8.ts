@@ -10,9 +10,9 @@ function calculate (numberOfOne: number, numberOfTwo: number, enterSign: string)
 			return numberOfOne + numberOfTwo
 		case '-' :
 			return numberOfOne - numberOfTwo
-		case '/' :  
+		case '/' :
 			return numberOfOne / numberOfTwo
-		case '*' : 
+		case '*' :
 			return numberOfOne * numberOfTwo
 		default:
 			return undefined
@@ -20,14 +20,18 @@ function calculate (numberOfOne: number, numberOfTwo: number, enterSign: string)
 }
 
 function calculateValue () {
-	if (isFinite(numberOfOne) && isFinite(numberOfTwo) && numberOfTwo > 0) {
+	if (!isFinite(numberOfOne) || !isFinite(numberOfTwo)) {
 		return print(`Введите корректные значения`)
 	}
 	if (numberOfTwo === 0 && enterSign === '/') {
 		return print(`На ноль делить нельзя`)
 	}
 	const result = calculate(numberOfOne, numberOfTwo, enterSign)
-	return print(`${numberOfOne} ${enterSign} ${numberOfTwo} = ${result}`)
+	if (result === undefined) {
+		print(`неизвестный оператор`)
+	} else {
+		print(`${numberOfOne} ${enterSign} ${numberOfTwo} = ${result}`)
+	}
 }
 
 calculateValue()

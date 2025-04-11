@@ -20,10 +20,14 @@ import { testScript } from '../../tests'
 //   })
 // })
 
+// TODO
+
+// testScript.skip(__dirname, '1.ts', [
 testScript(__dirname, '1.ts', [
   {
     description: 'яблоко',
-    input: ['1'],
+    // skip: true, // TODO
+    input: ['яблоко'],
     print: ['Думаю ваши любимые фрукты: яблоко'],
   },
   {

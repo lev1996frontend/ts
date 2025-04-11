@@ -1,4 +1,4 @@
-import { ConsoleInputOutput, InputOutput } from './io/console'
+import { InputOutput } from './io/console'
 import { SavesFile } from './io/files'
 import { MazeGame } from './maze/MazeGame'
 import { Player } from './player'
