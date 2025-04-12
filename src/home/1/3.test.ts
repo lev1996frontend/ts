@@ -4,14 +4,23 @@ import { testScript } from '../../tests'
 
 testScript(__dirname, '3.ts', [
   {
-    description: 'яблоко',
-    input: ['1'],
-    print: ['Думаю ваши любимые фрукты: яблоко'],
+    description: '6',
+    input: [100, 6],
+    print: ['Вы получите прибыль с фиксированным процентом (10%) в размере: 60'
+    ],
     random: [10],
   },
   {
-    description: 'груша',
-    input: ['груша'],
-    print: ['Думаю ваши любимые фрукты: груша'],
+    description: '11',
+    input: [100, 11],
+    print: ['Вы получите прибыль со случайным процентом (10%), она составит: 110'
+    ],
+    random: [10],
+  },
+  {
+    description: 'null',
+    input: [50, -1],
+    print: [],
+    random: [],
   },
 ])

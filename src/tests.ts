@@ -1,6 +1,5 @@
-import path from "path"
-
-export {}
+import { skip } from 'node:test'
+import path from 'path'
 
 // globalThis.Number
 // globalThis === global
@@ -9,6 +8,8 @@ export {}
 
 type Test = {
   description?: string
+  skip?: boolean
+  questions?: (string | undefined)[] // TODO
   input: (string | number)[]
   print: (string | number | undefined)[]
   random?: number[]
@@ -37,18 +38,22 @@ const mock = (test: Test) => {
   }
 }
 
-export const testScript = (scriptDir: string, scriptName: string, tests: Test[]) => {
+export const testScript = (scriptDir: string, scriptName: string, tests: (Test | TestBuilder)[], skip = false) => {
   const scriptPath = path.resolve(scriptDir, scriptName)
-  // const runTest = describe || describe.skip
-  // runTest(scriptPath, () => {
+  const runTests = skip ? describe.skip : describe
 
-  // describe || describe.skip
-  ;(describe)(scriptPath, () => {
+  runTests(scriptPath, () => {
     afterEach(() => {
       jest.resetModules()
     })
-    tests.forEach((t, i) => {
-      test(t.description ?? `test ${i + 1}`, () => {
+
+    tests.map(t => (
+      t instanceof TestBuilder
+        ? t.build()
+        : t
+    )).forEach((t, i) => {
+      const runTest = t.skip ? test.skip : test
+      runTest(t.description ?? `test ${i + 1}`, () => {
         mock(t)
         require(scriptPath)
       })
@@ -56,15 +61,68 @@ export const testScript = (scriptDir: string, scriptName: string, tests: Test[])
   })
 }
 
+testScript.skip = (scriptDir: string, scriptName: string, tests: (Test | TestBuilder)[]) => {
+  testScript(scriptDir, scriptName, tests, true)
+}
+
 // TODO
 
-// testScript(__dirname, 'test.ts')
-//   .input('Введите первое число: ', 5)
-//   .input('Введите второе число: ', 10)
-//   .random(2, 5, 6)
-//   .print('5 + 10 = 15')
-  // .print(
-  //   '  *',
-  //   ' ***',
-  //   '*****'
-  // )
+class TestBuilder {
+  #test: Test & {
+    random: number[]
+  }
+
+  constructor(description?: string) {
+    this.#test = {
+      description,
+      input: [],
+      print: [],
+      random: [],
+    }
+  }
+
+  // TODO: проверять message и value
+  input(question: string, value: number | string): this {
+    // this.input.push()
+    return this
+  }
+
+  print(...messages: (string | number | undefined)[]): this {
+    this.#test.print.push(...messages)
+    return this
+  }
+
+  random(...numbers: number[]): this  {
+    this.#test.random.push(...numbers)
+    return this
+  }
+
+  build() {
+    return this.#test
+  }
+}
+
+const testBuilder = (description?: string) => {
+  return new TestBuilder(description)
+}
+
+export {
+  testBuilder as test
+}
+
+// testScript(__dirname, 'test.ts', [
+//   test('description 1')
+//     .input('Введите первое число: ', 5)
+//     .input('Введите второе число: ', 10)
+//     .random(2, 5, 6)
+//     .print('5 + 10 = 15')
+//     .print(
+//       '  *',
+//       ' ***',
+//       '*****'
+//     ),
+// ])
+
+// TODO: протестировать 2.3 и inputNumber
+// + user test для лабиринта (полный процесс игры)
+// позже будет unit test (Maze), integrity test (сохранение/загрузка с файлом)
