@@ -4,7 +4,7 @@
   "scripts": {
     "start": "chcp 65001 && ts-node src/main.ts",
     "build": "tsc",
-    "test": "jest"
+    "test": "jest ./src/home/2/3"
   },
   "dependencies": {
     "@types/moment": "^2.13.0",

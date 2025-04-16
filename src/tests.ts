@@ -1,4 +1,4 @@
-import { skip } from 'node:test'
+import { question } from 'readline-sync';
 import path from 'path'
 
 // globalThis.Number
@@ -9,24 +9,30 @@ import path from 'path'
 type Test = {
   description?: string
   skip?: boolean
-  questions?: (string | undefined)[] // TODO
+  questions?: (string | undefined)[]
   input: (string | number)[]
   print: (string | number | undefined)[]
   random?: number[]
 }
 
 const mock = (test: Test) => {
-  ;(global as any).input = (): string => {
+  ;(global as any).input = (question?: string): string => {
     const value = test.input.shift()!
     expect(value).toBeDefined()
+
+    const questionValue = test.questions?.shift()
+    if (typeof questionValue !== 'undefined') {
+      expect(question).toBe(questionValue)
+    }
+
     return String(value)
   }
   ;(global as any).print = (message?: string | number): void => {
-    const value = test.print.shift()!
+    const value = test.print.shift()
     if (typeof value === 'undefined') {
       expect(message).toBeUndefined()
     } else {
-      expect(String(message)).toBe(String((value)))
+      expect(String(message)).toBe(String(value))
     }
   }
   ;(global as any).random = (min: number, max: number): number => {
@@ -68,22 +74,35 @@ testScript.skip = (scriptDir: string, scriptName: string, tests: (Test | TestBui
 // TODO
 
 class TestBuilder {
-  #test: Test & {
-    random: number[]
-  }
+  #test: Test & Required<Omit<Test, 'description'>>
 
   constructor(description?: string) {
     this.#test = {
       description,
+      skip: false,
       input: [],
       print: [],
       random: [],
+      questions: [],
     }
   }
 
-  // TODO: проверять message и value
-  input(question: string, value: number | string): this {
-    // this.input.push()
+  input(value: number | string): this
+  input(question: string, value: number | string): this
+  input(
+    ...args:
+      [value: number | string]
+      | [question: string, value: number | string]
+  ): this {
+    if (args.length === 1) {
+      const [value] = args
+      this.#test.input.push(value)
+      this.#test.questions.push(undefined)
+    } else {
+      const [question, value] = args
+      this.#test.input.push(value)
+      this.#test.questions.push(question)
+    }
     return this
   }
 
@@ -94,6 +113,11 @@ class TestBuilder {
 
   random(...numbers: number[]): this  {
     this.#test.random.push(...numbers)
+    return this
+  }
+
+  skip(): this {
+    this.#test.skip = true
     return this
   }
 
@@ -111,17 +135,19 @@ export {
 }
 
 // testScript(__dirname, 'test.ts', [
-//   test('description 1')
+//   testBuilder('description 1').skip()
 //     .input('Введите первое число: ', 5)
 //     .input('Введите второе число: ', 10)
+//     .input(2)
 //     .random(2, 5, 6)
 //     .print('5 + 10 = 15')
 //     .print(
 //       '  *',
 //       ' ***',
 //       '*****'
-//     ),
-// ])
+//     )
+// ] satisfies TestBuilder[])
+
 
 // TODO: протестировать 2.3 и inputNumber
 // + user test для лабиринта (полный процесс игры)
