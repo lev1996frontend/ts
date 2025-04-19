@@ -24,8 +24,8 @@ const input = [
 //   //   })
 //   // })
 // })
-testScript(__dirname, 'test.ts', [
-    test('One game start player')
+testScript(__dirname, '../index.ts', [
+    test('One game, start player')
     .input('Ваше имя: ', 'Иван')
     .print(
       'Добро пожаловать в лабиринт, Иван! Попробуй найти выход и не вернуться на старт ;)',

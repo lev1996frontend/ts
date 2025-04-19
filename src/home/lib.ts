@@ -32,7 +32,7 @@ const _menu = (header: Header, items: Record<string, () => void>): void => {
     const commandIndex = +input()
 
 		if (commandIndex === 0) {
-			return 
+			return
 		}
 
 		const key = itemsString[commandIndex - 1]
@@ -51,7 +51,7 @@ export function select<T extends object>(obj: T): keyof T | undefined
 export function select<T extends object>(header: string, obj: T): keyof T | undefined
 export function select<T extends object>(
 	...args: (
-		[arr: unknown[]] | [header: string, arr: unknown[]] 
+		[arr: unknown[]] | [header: string, arr: unknown[]]
 		| [obj: T] | [header: string, obj: T]
 	)
 ) {
@@ -64,7 +64,7 @@ export function select<T extends object>(
 const _select = <T extends object>(header: string, obj: T | unknown[]): string | number | undefined => {
 	while (true) {
 		console.clear()
-		
+
 		if (header) {
 			print(header)
 		}
@@ -104,11 +104,11 @@ export const inputNumber = (header?: string, validation?: (item: number) => bool
 		if (inputStr !== '' && result === true && isFinite(inputNum)) {
 			return inputNum
 		}
-		
+
 		print(
 			typeof result === 'string' && result !== ''
-				? result
-				: 'Введите корректное число!'
+				?	result
+				:	'Введите корректное число!'
 		)
 	}
 }

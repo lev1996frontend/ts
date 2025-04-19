@@ -1,4 +1,3 @@
-import { question } from 'readline-sync';
 import path from 'path'
 
 // globalThis.Number
@@ -58,6 +57,7 @@ export const testScript = (scriptDir: string, scriptName: string, tests: (Test |
         ? t.build()
         : t
     )).forEach((t, i) => {
+      // console.log(i, t)
       const runTest = t.skip ? test.skip : test
       runTest(t.description ?? `test ${i + 1}`, () => {
         mock(t)

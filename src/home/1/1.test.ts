@@ -23,7 +23,7 @@ import { testScript } from '../../tests'
 testScript(__dirname, '1.ts',[
   {
     description: 'яблоко',
-    skip: true,
+    // skip: true,
     // only: true, // TODO
     input: ['яблоко'],
     print: ['Думаю ваши любимые фрукты: яблоко'],
