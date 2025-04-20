@@ -2,7 +2,8 @@
   "name": "learning-typescript",
   "version": "1.0.0",
   "scripts": {
-    "start": "chcp 65001 && ts-node src/main.ts",
+    "start": "ts-node src/main.ts",
+    "dev": "chcp 65001 && ts-node src/main.ts",
     "build": "tsc",
     "test": "jest --testPathPattern=maze.test.ts"
   },
