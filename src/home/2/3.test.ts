@@ -16,7 +16,7 @@ import { testScript, test } from "../../tests";
 //   },
 // ])
 
-testScript(__dirname, '2.3.test.ts', [
+testScript(__dirname, '3.test.ts', [
   // 4 варианта?
   {
     description: '3 атакующих',

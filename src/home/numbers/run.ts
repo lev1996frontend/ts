@@ -40,12 +40,12 @@ export function run(
   //   return inputs[currentValue++]!
   // }
   const nextValue = (): number => {
-    if (inputs.length === 0 || typeof inputs === 'undefined') {
+    if (inputs.length === 0) {
       throw program_finished
     }
     const value = inputs.shift()
-    if (value === undefined) {
-      throw new Error('undefined')
+    if (!value) {
+      throw new Error('array is undefined')
     }
     return value
   }
