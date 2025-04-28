@@ -4,44 +4,62 @@ const dictionaryVariables: Record<number, number> = {}
 
 run('program3.txt', (nextValue, send, error) => {
 
-  const errorRun = (num: number | (() => number) | undefined ): number => {
-    if (typeof num === 'undefined') {
+  const getNumber = (): number => {
+    const source = getAction(sources)
+    const n = source()
+    return n
+  }
+
+  const getAction = <T extends Function>(
+    actions: Record<number, T>
+  ): T => {
+    const action = actions[nextValue()]
+    if (typeof action === 'undefined') {
       throw error
     }
-    return typeof num === 'function' ? num() : num
+    return action
   }
 
+  const calculateOperation = () => {
+    const n1 = getNumber()
+    const calculate = getAction(operations)
+    const n2 = getNumber()
+    const result = calculate(n1, n2)
+    return result
+  }
 
   // TODO: команды (отправить, запомнить)
-  const command: Record < number, (a: number) => void | number> = {
-    1: a => send(a),
-    2: a => {
-      const value = dictionaryVariables[a]
-      errorRun(dictionaryVariables[a])
-      return value
+  const commands: Record <number, () => void> = {
+    // отправить результат вычисления
+    1: () => {
+      const result = calculateOperation()
+      send(result)
+    },
+    // запомнить число или результат вычисления
+    2: () => {
+      const varNumber = nextValue()
+      const source = getAction(sourceAttachment)
+      dictionaryVariables[varNumber] = source()
     }
   }
 
-  // TODO: источник присаивания (число, результат выражения)
-
-  const sourceAttachment: Record<number, () => number > = {
-    1:  () => nextValue(),
-    2:  () => {
-      const index = nextValue()
-      const value = dictionaryVariables[index]
-      return errorRun(value)
-    }
+  const sourceAttachment: Record<number, () => number> = {
+    1: nextValue,
+    2: calculateOperation,
   }
 
-  const sources: Record <number, () => number> = {
+  const sources: Record<number, () => number> = {
     1: nextValue,
     2: () => {
-      const value = dictionaryVariables[nextValue()]
-      return errorRun(value)
-    }, // TODO: избавиться от ослабления типизации
+      const n = dictionaryVariables[nextValue()]
+      if (typeof n === 'undefined') {
+        throw error
+      }
+      return n
+    },
   }
 
-  const operators: Record <number, (a: number, b: number) => number>  = {
+  const operations: Record<number, (a: number, b: number) => number>  = {
     1: (a, b) => a + b,
     2: (a, b) => a - b,
     3: (a, b) => a * b,
@@ -53,13 +71,10 @@ run('program3.txt', (nextValue, send, error) => {
     },
   }
 
-  // script
+  // start
 
-  const source1 = sources[nextValue()]
-
-  const n1: number = errorRun(source1)
-
-
+  const command = getAction(commands)
+  command()
 })
 
 /*
