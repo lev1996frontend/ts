@@ -28,7 +28,6 @@ run('program3.txt', (nextValue, send, error) => {
     return result
   }
 
-  // TODO: команды (отправить, запомнить)
   const commands: Record <number, () => void> = {
     // отправить результат вычисления
     1: () => {
@@ -40,7 +39,8 @@ run('program3.txt', (nextValue, send, error) => {
       const varNumber = nextValue()
       const source = getAction(sourceAttachment)
       dictionaryVariables[varNumber] = source()
-    }
+    },
+
   }
 
   const sourceAttachment: Record<number, () => number> = {
@@ -76,9 +76,4 @@ run('program3.txt', (nextValue, send, error) => {
   const command = getAction(commands)
   command()
 })
-
-/*
-Калькулятор
-поддерживает операторы: + - * /
-при делении на 0 бросает ошибку
-*/
+// src/home/numbers/program3.ts

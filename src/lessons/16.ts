@@ -43,7 +43,7 @@
 // .then((data) => {
 //   console.log('data', data)
 // })
-// .catch(console.error) 
+// .catch(console.error)
 // //.finally()
 
 // new Promise<void>((resolve) => resolve())
@@ -61,7 +61,7 @@
 // 	}, 1000)
 // }))
 // .then(() => print('3'))
-// // .catch(console.error) 
+// // .catch(console.error)
 
 const nextJoke = async (): Promise<string> => {
   const response = await fetch('https://api.chucknorris.io/jokes/random', { // ?q=asd&c=123
@@ -74,4 +74,6 @@ const nextJoke = async (): Promise<string> => {
 	return value
 }
 
-nextJoke().then(print)
+// const delay = () => new Promise<void>(resolve => setTimeout(resolve, 1000))
+// nextJoke().then(print)
+// Promise.race([nextJoke(), delay()]).then(data => {})

@@ -44,7 +44,7 @@ export function run(
       throw program_finished
     }
     const value = inputs.shift()
-    if (!value) {
+    if (typeof value === 'undefined') {
       throw new Error('array is undefined')
     }
     return value
