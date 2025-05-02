@@ -40,7 +40,14 @@ run('program3.txt', (nextValue, send, error) => {
       const source = getAction(sourceAttachment)
       dictionaryVariables[varNumber] = source()
     },
-
+    3: () => {
+      const varNumber = nextValue()
+      const value = dictionaryVariables[varNumber]
+      if(typeof value === 'undefined') {
+        throw error
+      }
+      send(value)
+    },
   }
 
   const sourceAttachment: Record<number, () => number> = {
