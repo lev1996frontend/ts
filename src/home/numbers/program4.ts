@@ -18,7 +18,7 @@ run('program4.txt', (nextValue, send, error) => {
   const n = nextValue()
   const nextOperator = nextValue()
 
-  result = calculate()
+  result = calculate(n)
 
   if (nextOperator === Operation.equals) {
     send(result)
@@ -30,7 +30,7 @@ run('program4.txt', (nextValue, send, error) => {
 
   // functions
 
-  function calculate(): number {
+  function calculate(n : number): number {
     switch (operation) {
       case Operation.plus: result + n
       case Operation.minus: result - n

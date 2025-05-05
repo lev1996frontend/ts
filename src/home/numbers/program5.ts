@@ -4,6 +4,13 @@ import { run } from "./run"
 // (2+3)
 // (1+(3-(2*2)+2))
 
+// 0 5
+// 1 2 1 0 3
+
+// TODO: закодировать последний пример
+// сделать возможным решение такой задачи:
+// ((2*3)+4)/2
+
 const enum Operation {
   plus,
   minus,
@@ -25,29 +32,36 @@ run('program5.txt', (nextValue, send, error) => {
 
     let result = nextValue()
 
-    if (operationsCount === 0) {
-      return result
-    }
+    for (let i = 0; i < operationsCount; i++) {
+      const operator = nextValue()
+      const nextNumber = calculateExpression()
 
-    // TODO: цикл + рекурсия calculateExpression()
+      switch (operator) {
+        case Operation.plus: {
+          result += nextNumber
+          break
+        }
+        case Operation.minus: {
+          result -= nextNumber
+          break
+        }
+        case Operation.multiply: {
+          result *= nextNumber
+          break
+        }
+        case Operation.divide: {
+          if (nextNumber === 0) {
+            throw error
+          }
+          result /= nextNumber
+          break
+        }
+
+        default:
+          throw error
+      }
+    }
 
     return result
-  } 
-
-  function calculate(): number {
-    switch (operation) {
-      case Operation.plus: result + n
-      case Operation.minus: result - n
-      case Operation.multiply: result * n
-      case Operation.divide: {
-        if (n === 0) {
-          throw error
-        }
-        return result / n
-      }
-
-      default:
-        throw error
-    }
   }
 })
