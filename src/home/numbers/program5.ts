@@ -3,16 +3,15 @@ import { run } from "./run"
 // 5
 // (2+3)
 // (1+(3-(2*2)+2))
-
 // 0 5
 // 1 2 1 0 3
+// 1 0 1 1 2 0 3 0 2 1 0 2 3 0 2 1 0 2
 
-// TODO: закодировать последний пример
-// сделать возможным решение такой задачи:
+// TODO: починить предыдущие примеры
 // ((2*3)+4)/2
-
+// 1 1 1 0 2 3 0 3 1 0 4 4 0 2
 const enum Operation {
-  plus,
+  plus = 1,
   minus,
   multiply,
   divide,
@@ -30,7 +29,11 @@ run('program5.txt', (nextValue, send, error) => {
       throw error
     }
 
-    let result = nextValue()
+    if (operationsCount === 0) {
+      return nextValue()
+    }
+
+    let result = calculateExpression()
 
     for (let i = 0; i < operationsCount; i++) {
       const operator = nextValue()
@@ -61,7 +64,6 @@ run('program5.txt', (nextValue, send, error) => {
           throw error
       }
     }
-
     return result
   }
 })

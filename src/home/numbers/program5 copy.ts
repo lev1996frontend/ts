@@ -5,24 +5,28 @@ import { run } from "./run"
 // (1+(3-(2*2)+2))
 
 const enum Operation {
-  plus,
+  plus = 1,
   minus,
   multiply,
   divide,
 }
 
-type StackItem = {
-  n: number
-  operator: Operation
-  count: number
+type Expression = {
+  result: number
+  operator?: Operation
+  operationsCount: number
 }
 
-const stack: StackItem[] = []
+const stack: Expression[] = []
 // {
 //   n: 0,
 //   operator: Operation.plus,
 //   count: 1
 // }
+
+// (((2*3)+4)/2)
+
+// (1+(3-(2*2)+2))
 
 run('program5.txt', (nextValue, send, error) => {
   const operationsCount = nextValue()
@@ -31,65 +35,62 @@ run('program5.txt', (nextValue, send, error) => {
     throw error
   }
 
-  const n = nextValue()
-
   if (operationsCount > 0) {
     stack.push({
-      n,
-      operator: nextValue(),
-      count: operationsCount,
+      result: 0,
+      operationsCount,
     })
     return
-  } else {
-
   }
 
-  if (stack.length === 0) {
-    send(n) // ?
+  const n = nextValue()
+
+  const expr = stack.at(-1)
+
+  if (!expr) {
+    return send(n)
+  }
+
+  if (expr.operator) {
+    expr.result = calculate(expr.result, expr.operator, n)
+    expr.operationsCount--
   } else {
-    let item = stack[-1]
-    while (stack.length > 0) {
-      const item = stack[-1]!
-      item.n = calculate(item.n, item.operator, n)
-      item.count--
-      if (item.count === 0) {
-        item.n
-      }
+    expr.result = n
+  }
+
+  if (expr.operationsCount) {
+    return
+  }
+
+  let rightExpr = expr
+  while (stack.length > 0) {
+    stack.pop()
+    const leftExpr = stack.at(-1)
+    if (!leftExpr) {
+      return send(expr.result)
+    }
+
+    // TODO: function
+    if (leftExpr.operator) {
+      leftExpr.result = calculate(leftExpr.result, leftExpr.operator, rightExpr.result)
+      leftExpr.operationsCount--
+    } else {
+      leftExpr.result = rightExpr.result
     }
   }
 
-  // send(calculateExpression())
-
   // functions
 
-  // function calculateExpression(): number {
-  //   const operationsCount = nextValue()
-
-  //   if (operationsCount < 0) {
-  //     throw error
-  //   }
-
-  //   let result = nextValue()
-
-  //   if (operationsCount === 0) {
-  //     return result
-  //   }
-
-  //   // TODO: цикл + рекурсия calculateExpression()
-
-  //   return result
-  // }
-
-  function calculate(): number {
+  function calculate(n1: number, operation: Operation, n2: number): number {
     switch (operation) {
-      case Operation.plus: result + n
-      case Operation.minus: result - n
-      case Operation.multiply: result * n
+      case Operation.plus: n1 + n2
+      case Operation.minus: n1 - n2
+      case Operation.multiply: n1 * n2
       case Operation.divide: {
         if (n === 0) {
           throw error
         }
-        return result / n
+        return n1 / n2
       }
 
       default:
