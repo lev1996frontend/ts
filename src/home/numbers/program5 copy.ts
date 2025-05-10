@@ -56,6 +56,7 @@ run('program5.txt', (nextValue, send, error) => {
     expr.operationsCount--
   } else {
     expr.result = n
+    expr.operator = nextValue()
   }
 
   if (expr.operationsCount) {
@@ -63,11 +64,11 @@ run('program5.txt', (nextValue, send, error) => {
   }
 
   let rightExpr = expr
-  while (stack.length > 0) {
+  while (stack.length > 0 && rightExpr.operationsCount === 0) {
     stack.pop()
     const leftExpr = stack.at(-1)
     if (!leftExpr) {
-      return send(expr.result)
+      return send(rightExpr.result)
     }
 
     // TODO: function
@@ -77,22 +78,25 @@ run('program5.txt', (nextValue, send, error) => {
     } else {
       leftExpr.result = rightExpr.result
     }
+
+    rightExpr = leftExpr
   }
+
+  rightExpr.operator = nextValue()
 
   // functions
 
   function calculate(n1: number, operation: Operation, n2: number): number {
     switch (operation) {
-      case Operation.plus: n1 + n2
-      case Operation.minus: n1 - n2
-      case Operation.multiply: n1 * n2
+      case Operation.plus: return n1 + n2
+      case Operation.minus: return n1 - n2
+      case Operation.multiply: return n1 * n2
       case Operation.divide: {
-        if (n === 0) {
+        if (n2 === 0) {
           throw error
         }
         return n1 / n2
       }
-
       default:
         throw error
     }
