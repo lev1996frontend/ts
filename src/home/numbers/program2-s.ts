@@ -4,9 +4,6 @@ let n1: number | undefined
 let operator: number | undefined
 
 run('program2.txt', (value, send, error) => {
-  if (value === 0) {
-    throw error
-  }
   const operators: Record <number, (a: number, b: number) => number>  = {
     1: (a, b) => a + b,
     2: (a, b) => a - b,
@@ -18,7 +15,7 @@ run('program2.txt', (value, send, error) => {
       return a / b
     },
   }
-  
+
   if (typeof n1 === 'undefined') {
     n1 = value
     return
@@ -41,8 +38,6 @@ run('program2.txt', (value, send, error) => {
   n1 = undefined
   operator = undefined
  }
-
-
 )
 
 /*

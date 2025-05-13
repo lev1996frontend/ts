@@ -28,6 +28,8 @@ const stack: Expression[] = []
 
 // (1+(3-(2*2)+2))
 
+// TODO: -s
+
 run('program5.txt', (nextValue, send, error) => {
   const operationsCount = nextValue()
 

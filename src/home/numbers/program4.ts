@@ -1,7 +1,8 @@
 import { run } from "./run"
 
 // 2+3=1+3-2=
-// TODO: повторить самостоятельно через цикл
+
+// TODO: -s
 
 const enum Operation {
   equals,
@@ -32,9 +33,9 @@ run('program4.txt', (nextValue, send, error) => {
 
   function calculate(n : number): number {
     switch (operation) {
-      case Operation.plus: result + n
-      case Operation.minus: result - n
-      case Operation.multiply: result * n
+      case Operation.plus: return result + n
+      case Operation.minus: return result - n
+      case Operation.multiply: return result * n
       case Operation.divide: {
         if (n === 0) {
           throw error

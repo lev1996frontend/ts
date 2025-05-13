@@ -1,13 +1,15 @@
-import { run } from './run'
+import { run } from "./run";
+
+// TODO: -s
 
 const dictionaryVariables: Record<number, number> = {}
 
 run('program3.txt', (nextValue, send, error) => {
 
-  const getNumber = (): number => {
-    const source = getAction(sources)
-    const n = source()
-    return n
+  const getNumber = () => {
+    const sources = getAction(source)
+    const result = sources()
+    return result
   }
 
   const getAction = <T extends Function>(
@@ -28,42 +30,41 @@ run('program3.txt', (nextValue, send, error) => {
     return result
   }
 
-  const commands: Record <number, () => void> = {
-    // отправить результат вычисления
-    1: () => {
-      const result = calculateOperation()
-      send(result)
-    },
-    // запомнить число или результат вычисления
+  const source: Record<number, () => number> = {
+    1: nextValue,
     2: () => {
-      const varNumber = nextValue()
-      const source = getAction(sourceAttachment)
-      dictionaryVariables[varNumber] = source()
-    },
-
+      const value = dictionaryVariables[nextValue()]
+      if (typeof value === 'undefined') {
+        throw error
+      }
+      return value
+    }
   }
 
-  const sourceAttachment: Record<number, () => number> = {
+  const sourceAttachment: Record<number, () => number>= {
     1: nextValue,
     2: calculateOperation,
   }
 
-  const sources: Record<number, () => number> = {
-    1: nextValue,
-    2: () => {
-      const n = dictionaryVariables[nextValue()]
-      if (typeof n === 'undefined') {
-        throw error
-      }
-      return n
+
+
+  const commands: Record<number, () => void> = {
+    1: () => {
+      const result = calculateOperation()
+      send(result)
     },
+    2: () => {
+      const varNumber = nextValue()
+      const sources = getAction(sourceAttachment)
+      dictionaryVariables[varNumber] = sources()
+    }
   }
 
-  const operations: Record<number, (a: number, b: number) => number>  = {
-    1: (a, b) => a + b,
-    2: (a, b) => a - b,
-    3: (a, b) => a * b,
-    4: (a, b) => {
+const operations: Record<number, (a: number, b: number) => number> = {
+    1: (a,b) => a + b,
+    2: (a,b) => a - b,
+    3: (a,b) => a * b,
+    4: (a,b) => {
       if (b === 0) {
         throw error
       }
@@ -71,9 +72,6 @@ run('program3.txt', (nextValue, send, error) => {
     },
   }
 
-  // start
-
-  const command = getAction(commands)
-  command()
+  const start = getAction(commands)
+  start()
 })
-// src/home/numbers/program3.ts
