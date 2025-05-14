@@ -39,24 +39,52 @@ let root: ExpressionNode | undefined
 
 run('program6.txt', (nextValue, send, error) => {
 
+  const first = nextValue()
+  const operator = nextValue()
+  const third = nextValue()
+  const fourth = nextValue()
 
-
-  // functions
-
-  function calculate(left: number, operator: number, right: number) {
-    switch (operator) {
-      case Operation.plus: return left + right
-      case Operation.minus: return left - right
-      case Operation.multiply: return left * right
-      case Operation.divide: {
-        if (right === 0) {
-          throw error
-        }
-        return left / right
-      }
-      default:
-        throw error
-    }
+  const firstOperations: ExpressionNode = {
+    left: first,
+    operator: operator,
+    right: third
   }
+
+  const secondOperations: ExpressionNode = {
+    left: firstOperations,
+    operator: fourth,
+    right: nextValue()
+  }
+
+  root = secondOperations
+
+  if (nextValue() === 0) {
+    const result = calculate(root)
+    send(result)
+    root = undefined
+  }
+
 })
 
+// function
+
+function calculate(node: ExpressionNode): number {
+
+  const leftValue = typeof node.left === 'number' ? node.left : calculate(node.left)
+
+  const rightValue = typeof node.right === 'number' ? node.right : calculate(node.right)
+
+    switch (node.operator) {
+      case Operation.plus: return leftValue + rightValue
+      case Operation.minus: return leftValue - rightValue
+      case Operation.multiply: return leftValue * rightValue
+      case Operation.divide: {
+        if (rightValue === 0) {
+          throw new Error("division zero")
+        }
+        return leftValue / rightValue
+      }
+      default:
+        throw new Error("unknow operator")
+    }
+}

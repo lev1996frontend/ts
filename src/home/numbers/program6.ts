@@ -1,81 +1,98 @@
-// 1+2-3*4/5
-
-import { run } from "./run-signals";
+import { run } from "./run";
 
 // left, operator, right
 // заполняем дерево, потом вычисляем
 
-const TreeResult= <T extends object, U extends keyof T> (obj: T, key: U): T[U] => {
-  return obj[key]
+const enum Operation {
+  equals,
+  plus,
+  minus,
+  multiply,
+  divide,
 }
 
-type Tree = Record<'left' | 'operator' | 'right' | 'result', undefined | number>
-
-const tree: Tree = {
-  left: undefined,
-  operator: undefined,
-  right: undefined,
-  result: undefined
+type ExpressionNode = {
+  left: number | ExpressionNode
+  operator: Operation
+  right: number | ExpressionNode
 }
 
-run('program6.txt',(value, send, error) => {
-  const operators: Record <number, (a: number, b: number) => number>  = {
-    1: (a, b) => a + b,
-    2: (a, b) => a - b,
-    3: (a, b) => a * b,
-    4: (a, b) => {
-      if (b === 0) {
-        throw error
+// 1+2-3*4/5+2*3=
+// ((1+2)-((3*4)/5))+2*3
+
+// [1]: 1 + 2
+
+// [2]: [1] - 3
+
+// [3~]: 3 * 4
+// [2]: [1] - [3~]
+
+// [4~]: [3~] / 5
+// [2]: [1] - [4~]
+
+// [5]: [2] + 2
+
+// [6~]: 2 * 3
+// [5]: [2] + [6~]
+
+// let root: ExpressionNode | undefined
+
+// 1+2-3*4/6+2*3= 7
+run('program6.txt', (nextValue, send, error) => {
+  let rootExpression: ExpressionNode = {
+    left: nextValue(),
+    operator: nextValue(),
+    right: nextValue(),
+  }
+
+  while (true) {
+    const operator = nextValue()
+    if (operator === Operation.equals) {
+      break
+    }
+
+    const value = nextValue()
+
+    if (operator === Operation.plus || operator === Operation.minus) {
+      rootExpression = {
+        left: rootExpression,
+        operator,
+        right: value,
       }
-      return a / b
-    },
+    } else {
+      rootExpression.right = {
+        left: rootExpression.right,
+        operator,
+        right: value,
+      }
+    }
   }
 
-  if (value === 0) {
+  try {
+    const result = calculate(rootExpression)
+    send(result)
+  } catch {
     throw error
   }
-
-  if (tree.left === undefined) {
-    tree['left'] = value
-    return
-  }
-  
-  if (tree['right'] === undefined) {
-    tree['right'] = value
-    return
-  }
-
-  if (tree['operator'] === undefined) {
-    tree['operator'] = value
-    return
-  }
-  const operatorCheck = TreeResult(tree, 'operator')
-
-  if (typeof operatorCheck === 'undefined') {
-    throw error
-  }
-
-  const manipulation = operators[operatorCheck]
-  if (typeof manipulation === 'undefined') {
-    throw error
-  }
-  const left = TreeResult(tree, 'left')
-
-  if (typeof left === 'undefined') {
-    throw error
-  }
-  const right = TreeResult(tree, 'right')
-
-  if (typeof right === 'undefined') {
-    throw error
-  }
-
-  tree['result'] = manipulation(left, right)
-
-  send(tree['result'])
-
-  tree['operator'] = undefined
-  tree['left'] = undefined
-  tree['right'] = undefined
 })
 
+// function
+
+function calculate(node: ExpressionNode): number {
+  const leftValue = typeof node.left === 'number' ? node.left : calculate(node.left)
+  const rightValue = typeof node.right === 'number' ? node.right : calculate(node.right)
+
+  switch (node.operator) {
+    case Operation.plus: return leftValue + rightValue
+    case Operation.minus: return leftValue - rightValue
+    case Operation.multiply: return leftValue * rightValue
+    case Operation.divide: {
+      if (rightValue === 0) {
+        throw new Error("division zero")
+      }
+      return leftValue / rightValue
+    }
+    default:
+      throw new Error("unknow operator")
+  }
+}

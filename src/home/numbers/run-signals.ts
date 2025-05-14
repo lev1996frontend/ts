@@ -1,4 +1,3 @@
-import { error } from 'node:console';
 /*
 run('program1.txt', (nextValue, send, error) => {
   const n1 = nextValue()
@@ -10,11 +9,13 @@ run('program1.txt', (nextValue, send, error) => {
 })
 */
 
-import fs from 'node:fs'
-import path from 'node:path'
+import fs from 'node:fs';
+import path from 'node:path';
 
 const program_finished = Symbol('program_finished')
 const program_crashed = Symbol('program_crashed')
+
+export type ScriptArgs = [value: number, send: (num: number) => void, error: typeof program_crashed]
 
 export function run(
   scriptName: string,

@@ -60,7 +60,7 @@ run('program3.txt', (nextValue, send, error) => {
     }
   }
 
-const operations: Record<number, (a: number, b: number) => number> = {
+  const operations: Record<number, (a: number, b: number) => number> = {
     1: (a,b) => a + b,
     2: (a,b) => a - b,
     3: (a,b) => a * b,
