@@ -32,7 +32,7 @@ run('program4.txt', (nextValue, send, error) => {
   // functions
 
   function calculate(n : number): number {
-    
+
     switch (operation) {
       case Operation.plus: return result + n
       case Operation.minus: return result - n

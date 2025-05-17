@@ -79,7 +79,9 @@ run('program6.txt', (nextValue, send, error) => {
 // function
 
 function calculate(node: ExpressionNode): number {
+
   const leftValue = typeof node.left === 'number' ? node.left : calculate(node.left)
+  
   const rightValue = typeof node.right === 'number' ? node.right : calculate(node.right)
 
   switch (node.operator) {

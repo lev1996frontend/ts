@@ -2,7 +2,6 @@ import { run, ScriptArgs } from './run-signals'
 
 // abstract state
 type State = {
-  data?: object
   next(...args: ScriptArgs): State
 }
 
@@ -19,22 +18,22 @@ class ReadN1 implements State {
 type ReadN2Data = {
   n1: number
 }
+
 class ReadN2 implements State {
   constructor(
-    public data: ReadN2Data
+    public state: ReadN2Data
   ) {}
+
   next(...[value, send]: ScriptArgs): State {
-    send(this.data.n1 + value)
+    send(this.state.n1 + value)
     return new ReadN1()
   }
 }
 
 // main
-let state: State = new ReadN1() // JSON.parse
-run('program1.txt', (...args) => {
+let state: State = new ReadN1()
+run('program3.txt', (...args) => {
   state = state.next(...args)
-  // const name = state['__proto__'].constructor.name
-  // JSON.stringify { __type: name, data: state.data }
 })
 
 
