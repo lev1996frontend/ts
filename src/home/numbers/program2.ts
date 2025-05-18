@@ -25,9 +25,7 @@ run('program2.txt', (nextValue, send, error) => {
   }
 
   const result = manipulation(n1,n2)
-
   send(result)
-
 })
 
 /*

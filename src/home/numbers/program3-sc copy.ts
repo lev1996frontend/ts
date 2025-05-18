@@ -1,10 +1,5 @@
 import { run, ScriptArgs } from './run-signals'
 
-const enum Command {
-  send = 1,
-  assign,
-}
-
 const enum Operator {
   plus = 1,
   minus,
@@ -34,41 +29,8 @@ interface State  {
   next(...args: ScriptArgs): State
 }
 
-// command (send, assign) -> source (n, expr)
-// send -> n/expr -> send(result)
-// assign -> v -> n/expr -> var=result
-
-// n -> t, n|v -> действие
-// expr -> t1, n1|v1, operator, t2, n2|v2 -> действие
-
-// send expr l 1 plus l 2
-// assign 1 n l 5
-// assign 2 expr v 1 1 l 2
-// send n v 2
-
-class CommandState implements State {
-  // TODO: variables: Record<number, number> = {}
-  next(...[command]: ScriptArgs): State {
-    switch (command) {
-      case Command.send: return new NumberTypeState()
-      case Command.assign: return new VariableTypeState()
-    }
-  }
-}
-
-// 1 number type (v|l)
-
-class NumberTypeState implements State {
-  next(...[type]: ScriptArgs): State {
-
-  return new OperatorState({ type })
-  }
-
-
-}
-
 // state 1
-class VariableTypeState implements State {
+class N1State implements State {
   constructor(
     private _result: number = 0,
     private _varNumber: Record<number, number> = {}
@@ -137,7 +99,7 @@ class N2State implements State {
 }
 
 // main
-let state: State = new CommandState({ variables: {} })
+let state: State = new N1State()
 run('program3.txt', (...args) => {
   state = state.next(...args)
 })

@@ -1,10 +1,16 @@
-import { run, ScriptArgs } from './run-signals'
+import { ScriptArgs, run } from "./run-signals"
+
+// 2+3=1+3-2=
+// 5 2
+// 3 4 2
+
+// TODO: -s
 
 const enum Operator {
   plus = 1,
   minus,
   multiply,
-  divide,
+  divide
 }
 
 const operation: Record<Operator, (n1: number, n2: number) => number> = {
@@ -26,17 +32,9 @@ type State = {
 
 
 // 1
-class N1State implements State {
-  next(...[n1]: ScriptArgs): State {
-    return new OperatorState({ n1 })
-  }
-}
-
-
-// 2
 
 type OperatorStateData = {
-  n1: number
+  result: number
 }
 
 class OperatorState implements State {
@@ -44,12 +42,17 @@ class OperatorState implements State {
     public data: OperatorStateData
   ) {}
 
-  next(...[operator, _send , error]: ScriptArgs): State {
+  next(...[operator, send, error]: ScriptArgs): State {
+    if (operator === 0) {
+      send(this.data.result)
+      return new NumberState()
+    }
+
     if (!(operator in operation)) {
       throw error
     }
-    return new N2State({
-      // n1: this.data.n1,
+
+    return new NumberState({
       ...this.data,
       operator,
     })
@@ -57,42 +60,33 @@ class OperatorState implements State {
 }
 
 
-// 3
+// 2
 
-type N2StateData = OperatorStateData & {
-  // n1: number
+type NumberStateData = OperatorStateData & {
   operator: Operator
 }
 
-class N2State implements State {
+class NumberState implements State {
   constructor(
-    public data: N2StateData
+    public data?: NumberStateData
   ) {}
-  next(...[n2, send, error]: ScriptArgs): State {
+  next(...[value, _send, error]: ScriptArgs): State {
+    if (!this.data) {
+      return new OperatorState({ result: value })
+    }
     try {
       const calculate = operation[this.data.operator]
-      const result = calculate(this.data.n1, n2)
-      send(result)
-      return new N1State()
+      const result = calculate(this.data.result, value)
+      return new OperatorState({ result })
     } catch {
       throw error
     }
   }
 }
 
-
 // main
 
-let state: State = new N1State()
-run('program2.txt', (...args) => {
+let state: State = new NumberState()
+run('program4.txt', (...args) => {
   state = state.next(...args)
 })
-
-
-// in: "1 2 3 4 5"
-// out: "3 7"
-// in: "1 2 0 0 5"
-// out: "3 -"
-
-// in: 1 2 0 0 5 6
-// out: 3 -
