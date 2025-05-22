@@ -12,25 +12,17 @@ const enum Operator {
   divide
 }
 
-const operation: Record<Operator, (n1: number, n2: number) => number> = {
-  [Operator.plus]: (n1, n2) => n1 + n2,
-  [Operator.minus]: (n1, n2) => n1 - n2,
-  [Operator.multiply]: (n1, n2) => n1 * n2,
-  [Operator.divide]: (n1, n2) => {
-    if (n2 === 0) {
-      throw new Error('zero divide')
-    }
-    return n1 / n2
-  },
-}
-
 const enum VarOptions {
   primitive = 1,
   variable
 }
 
 // abstract state
+type Variables = Record<number, number>
 interface State  {
+  readonly variables: Variables
+  readonly data?: object
+
   next(...args: ScriptArgs): State
 }
 
@@ -47,97 +39,203 @@ interface State  {
 // send n v 2
 
 class CommandState implements State {
-  // TODO: variables: Record<number, number> = {}
-  next(...[command]: ScriptArgs): State {
+  constructor (
+    public variables: Variables = {}
+  ) {}
+  next(...[command, _send, error]: ScriptArgs): State {
     switch (command) {
-      case Command.send: return new NumberTypeState()
-      case Command.assign: return new VariableTypeState()
+      case Command.send: return new Number1TypeState(this.variables, { command })
+      case Command.assign: return new AssignState(this.variables)
+      default: throw error
     }
   }
 }
 
-// 1 number type (v|l)
-
-class NumberTypeState implements State {
-  next(...[type]: ScriptArgs): State {
-
-  return new OperatorState({ type })
-  }
-
-
-}
-
-// state 1
-class VariableTypeState implements State {
-  constructor(
-    private _result: number = 0,
-    private _varNumber: Record<number, number> = {}
+class AssignState implements State {
+  constructor (
+    public variables: Variables
   ) {}
-  next(...[input]: ScriptArgs): State {
-    const n1 = this._getValue(input)
-    return new OperatorState({
-      n1,
-      _result: this._result,
-      _varNumber: this._varNumber
-    })
+  next(...[variable]: ScriptArgs): State {
+    const data: CommandAssignData = {
+      command: Command.assign,
+      variable,
+    }
+    return new Number1TypeState(this.variables, data)
   }
+}
+// Expression
 
-  private _getValue(input: VarOptions) {
-    return this._varNumber[VarOptions.primitive]
-    ? input
-    : this._varNumber[input]
+type CommandData = {
+  command: Command
+}
+type CommandAssignData = {
+  command: Command.assign,
+  variable: number
+}
+function isCommandAssignData(data: CommandData): data is CommandAssignData {
+  return (
+    data.command === Command.assign
+    && typeof (data as CommandAssignData).variable === 'number'
+  )
+}
+
+// N1
+
+class Number1TypeState implements State {
+  constructor (
+    public variables: Variables,
+    public data: CommandData
+  ) {}
+  next(...[type, _send, error]: ScriptArgs): State {
+    switch( type) {
+      case VarOptions.primitive: return new Primitive1State(this.variables, this.data)
+      case VarOptions.variable: return new Variable1State(this.variables, this.data)
+      default: throw error
+    }
   }
 }
 
-// state 2
-type OperatorStateData = {
-  n1: number,
-  _result: number,
-  _varNumber: Record<number, number>
+class Primitive1State implements State {
+  constructor(
+    public variables: Variables,
+    public data: CommandData
+  ) {}
+
+  next(...[n1]: ScriptArgs): State {
+    return new OperatorState(this.variables, { ...this.data, n1 })
+  }
 }
 
+class Variable1State implements State {
+  constructor(
+    public variables: Variables,
+    public data: CommandData
+  ) {}
+  next(...[variable, _send, error]: ScriptArgs): State {
+    const n1 = this.variables[variable]
+    if (typeof n1 === 'undefined') {
+      throw error
+    }
+    return new OperatorState(this.variables, { ...this.data, n1 })
+  }
+}
+
+// Operator
+
+type OperatorStateData = CommandData & {
+  n1: number
+}
 class OperatorState implements State {
   constructor (
+    public variables: Variables,
     public data: OperatorStateData
   ) {}
   next(...[operator, _send, error]: ScriptArgs): State {
     if (!(operator in operation)) {
       throw error
     }
-    return new N2State({
+    return new Number2TypeState(this.variables, {
       ...this.data,
       operator,
     })
   }
 }
-// state 3
-type N2StateData = OperatorStateData & {
-  operator: Operator,
+
+// N2
+
+type Number2StateData = OperatorStateData & {
+  operator: Operator
 }
 
-class N2State implements State {
+class Number2TypeState implements State {
+  constructor (
+    public variables: Variables,
+    public data: Number2StateData
+  ) {}
+  next(...[type, _send, error]: ScriptArgs): State {
+    switch( type) {
+      case VarOptions.primitive: return new Primitive2State(this.variables, this.data)
+      case VarOptions.variable: return new Variable2State(this.variables, this.data)
+      default: throw error
+    }
+  }
+}
+
+class Primitive2State implements State {
   constructor(
-    public data: N2StateData
+    public variables: Variables,
+    public data: Number2StateData
   ) {}
 
-  next(...[input, send]: ScriptArgs): State {
-    const n2 = this._getValue(input)
-    const calculate = operation[this.data.operator]
-    const result = calculate(this.data.n1, n2)
-    send(result)
-
-    return new N1State(result, this.data._varNumber)
+  next(...args: ScriptArgs): State {
+    const [n2] = args
+    doAction(args, this.variables, {
+      ...this.data,
+      n2
+    })
+    return new CommandState(this.variables)
   }
+}
 
-  private _getValue (input: VarOptions) {
-    return this.data._varNumber[VarOptions.primitive]
-    ? input
-    : this.data._varNumber[input]
+class Variable2State implements State {
+  constructor(
+    public variables: Variables,
+    public data: Number2StateData
+  ) {}
+  next(...args: ScriptArgs): State {
+    const [variable, _send, error] = args
+    const n2 = this.variables[variable]
+    if (typeof n2 === 'undefined') {
+      throw error
+    }
+    doAction(args, this.variables, {
+      ...this.data,
+      n2
+    })
+    return new CommandState(this.variables)
+  }
+}
+
+// Action
+type ExpressionData = Number2StateData & {
+  n2: number
+}
+const operation: Record<Operator, (n1: number, n2: number) => number> = {
+  [Operator.plus]: (n1, n2) => n1 + n2,
+  [Operator.minus]: (n1, n2) => n1 - n2,
+  [Operator.multiply]: (n1, n2) => n1 * n2,
+  [Operator.divide]: (n1, n2) => {
+    if (n2 === 0) {
+      throw new Error('zero divide')
+    }
+    return n1 / n2
+  },
+}
+function doAction([_value, send, error]: ScriptArgs, variables: Variables, data: ExpressionData) {
+  try {
+    const calculate = operation[data.operator]
+    const result = calculate(data.n1, data.n2)
+    switch (data.command) {
+      case Command.send: {
+        send(result)
+        break
+      }
+      case Command.assign: {
+        if (isCommandAssignData(data)) {
+          variables[data.variable] = result
+        } else {
+          throw new Error('data.variable is undefined')
+        }
+      }
+      default: throw error
+    }
+  } catch {
+    throw error
   }
 }
 
 // main
-let state: State = new CommandState({ variables: {} })
+let state: State = new CommandState()
 run('program3.txt', (...args) => {
   state = state.next(...args)
 })
