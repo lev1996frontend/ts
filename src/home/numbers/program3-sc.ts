@@ -240,7 +240,6 @@ run('program3.txt', (...args) => {
   state = state.next(...args)
 })
 
-
 // in: "1 2 3 4 5"
 // out: "3 7"
 // in: "1 2 0 0 5"

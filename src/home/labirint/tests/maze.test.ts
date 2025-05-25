@@ -10,19 +10,19 @@ const input = [
 // describe.skip('MazeGame', () => {
 //   test.skip('', () => {})
 
-//   // test('player moving', async () => {
-//   //   await startGame({
-//   //     close() {},
-//   //     async input(question) {
-//   //       const inputText = input.shift()
-//   //       if (!inputText) {
-//   //         throw new Exit()
-//   //       }
-//   //       return inputText
-//   //     },
-//   //     async print(message) {},
-//   //   })
-//   // })
+  // test('player moving', async () => {
+  //   await startGame({
+  //     close() {},
+  //     async input(question) {
+  //       const inputText = input.shift()
+  //       if (!inputText) {
+  //         throw new Exit()
+  //       }
+  //       return inputText
+  //     },
+  //     async print(message) {},
+  //   })
+  // })
 // })
 testScript(__dirname, '../index.ts', [
     test('One game, start player')
