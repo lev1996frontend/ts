@@ -58,9 +58,9 @@ type Expression = {
   operator?: Operator
   source2?: ValueSource
   number2?: number
-
   result?: number
 }
+
 class SendState implements State {
   constructor (
     public variables: Variables,

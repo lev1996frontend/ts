@@ -12,6 +12,11 @@ const enum Operator {
   divide
 }
 
+const enum ValueType {
+  primitive = 1,
+  expression
+}
+
 const enum VarOptions {
   primitive = 1,
   variable
@@ -51,6 +56,11 @@ class CommandState implements State {
   }
 }
 
+
+type CommandAssignData = {
+  command: Command.assign,
+  variable: number
+}
 class AssignState implements State {
   constructor (
     public variables: Variables
@@ -60,17 +70,39 @@ class AssignState implements State {
       command: Command.assign,
       variable,
     }
-    return new Number1TypeState(this.variables, data)
+    return new ValueTypeState(this.variables, data)
   }
 }
+class ValueTypeState implements State {
+  constructor (
+    public variables: Variables,
+    public data: CommandAssignData
+
+  ) {}
+  next(...[valueType, _send, error]: ScriptArgs): State {
+    switch (valueType) {
+      case ValueType.primitive: return new ValueAssignState(this.variables, this.data)
+      case ValueType.expression: return new Number1TypeState(this.variables, this.data)
+      default: throw error
+    }
+  }
+}
+class ValueAssignState implements State {
+  constructor (
+    public variables: Variables,
+    public data: CommandAssignData
+
+  ) {}
+  next(...[value]: ScriptArgs): State {
+    this.variables[this.data.variable] = value
+    return new CommandState(this.variables)
+  }
+}
+
 // Expression
 
 type CommandData = {
   command: Command
-}
-type CommandAssignData = {
-  command: Command.assign,
-  variable: number
 }
 function isCommandAssignData(data: CommandData): data is CommandAssignData {
   return (
@@ -125,6 +157,7 @@ class Variable1State implements State {
 type OperatorStateData = CommandData & {
   n1: number
 }
+
 class OperatorState implements State {
   constructor (
     public variables: Variables,
@@ -200,6 +233,7 @@ class Variable2State implements State {
 type ExpressionData = Number2StateData & {
   n2: number
 }
+
 const operation: Record<Operator, (n1: number, n2: number) => number> = {
   [Operator.plus]: (n1, n2) => n1 + n2,
   [Operator.minus]: (n1, n2) => n1 - n2,
