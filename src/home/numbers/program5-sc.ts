@@ -19,16 +19,26 @@ const enum Operator {
   divide
 }
 
-const operation: Record<Operator, (n1: number, n2: number) => number> = {
-  [Operator.plus]: (n1, n2) => n1 + n2,
-  [Operator.minus]: (n1, n2) => n1 - n2,
-  [Operator.multiply]: (n1, n2) => n1 * n2,
-  [Operator.divide]: (n1, n2) => {
-    if (n2 === 0) {
-      throw new Error('zero divide')
+type Expression = {
+  result: number
+  operator?: Operator
+  operationsCount: number
+}
+
+function calculate(n1: number, operator: Operator, n2: number): number {
+  switch (operator) {
+    case Operator.plus: return n1 + n2
+    case Operator.minus: return n1 - n2
+    case Operator.multiply: return n1 * n2
+    case Operator.divide: {
+      if (n2 === 0) {
+        throw new Error('divide by zero')
+      }
+      return n1 / n2
     }
-    return n1 / n2
-  },
+    default:
+      throw new Error('unknown operator')
+  }
 }
 
 // abstract state
@@ -37,69 +47,96 @@ type State = {
 }
 
 
-// 1
-
-class N1State implements State {
-    next(...[value]: ScriptArgs): State {
-    return new OperatorState({ operationCount: value, result: value  })
+class OperationCountState implements State {
+  constructor (
+    public stack: Expression[]
+  ) {}
+  next(...[operationsCount, _send, error]: ScriptArgs): State {
+    if (operationsCount < 0) {
+      throw error
+    }
+    if (operationsCount === 0) {
+      return new NumberState(this.stack)
+    }
+    return new OperationCountState([...this.stack, {
+      operationsCount,
+      result: NaN,
+    }])
   }
 }
 
+class NumberState implements State {
+  constructor(
+    public stack: Expression[]
+  ) {}
+  next(...[n, send, error]: ScriptArgs): State {
+    const _calculate: typeof calculate = (...args) => {
+      try {
+        return calculate(...args)
+      } catch {
+        throw error
+      }
+    }
 
-// 2
+    const expr = this.stack.at(-1)
 
-type OperatorStateData = {
-  operationCount: number,
-  result: number
+    if (!expr) {
+      send(n)
+      return new OperationCountState([])
+    }
+
+    if (!expr.operator) {
+      expr.result = n
+      return new OperatorState(this.stack)
+    }
+
+    expr.result = _calculate(expr.result, expr.operator, n)
+    expr.operationsCount--
+
+    let rightExpr = expr
+    while (this.stack.length > 0 && rightExpr.operationsCount === 0) {
+      this.stack.pop()
+      const leftExpr = this.stack.at(-1)
+      if (!leftExpr) {
+        send(rightExpr.result)
+        return new OperationCountState([])
+      }
+
+      if (leftExpr.operator) {
+        leftExpr.result = _calculate(leftExpr.result, leftExpr.operator, rightExpr.result)
+        leftExpr.operationsCount--
+      } else {
+        leftExpr.result = rightExpr.result
+      }
+
+      rightExpr = leftExpr
+    }
+
+    return new OperatorState(this.stack)
+  }
 }
 
 class OperatorState implements State {
   constructor(
-    public data: OperatorStateData
+    public stack: Expression[]
   ) {}
 
-  next(...[operator, send, error]: ScriptArgs): State {
-    if (this.data.operationCount === 0) {
-      send(this.data.result)
-      return new N1State()
+  next(...[operator]: ScriptArgs): State {
+    const expr = this.stack.at(-1)
+
+    if (!expr) {
+      throw new Error('empty stack')
     }
 
-    if (!(operator in operation)) {
-      throw error
-    }
-
-    return new N2State({
-      ...this.data,
-      operator,
-    })
-  }
-}
-
-
-// 3
-
-type N2StateData = OperatorStateData & {
-  operator: Operator
-}
-
-class N2State implements State {
-  constructor(
-    public data: N2StateData & {operator?: Operator}
-  ) {}
-  next(...[value, _send, error]: ScriptArgs): State {
-    try {
-      const calculate = operation[this.data.operator]
-      this.data.result = calculate(this.data.result, value)
-      return new OperatorState({ operationCount: this.data.operationCount - 1, result: this.data.result })
-    } catch {
-      throw error
-    }
+    expr.operator = operator
+    return new OperationCountState(this.stack)
   }
 }
 
 // main
 
-let state: State = new N1State()
+let state: State = new OperationCountState([])
+
 run('program5.txt', (...args) => {
   state = state.next(...args)
 })

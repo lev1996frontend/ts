@@ -1,8 +1,9 @@
 import { run } from "./run"
 
-// 5
-// (2+3)
-// (1+(3-(2*2)+2))
+// 5 = 5
+// (2+3) = 5
+// (1+(3-(2*2)+2)) = 2
+// (((2*3)+4)/2) = 5
 
 const enum Operation {
   plus = 1,
@@ -24,9 +25,7 @@ const stack: Expression[] = []
 //   count: 1
 // }
 
-// (((2*3)+4)/2)
 
-// (1+(3-(2*2)+2))
 
 // TODO: -s
 
@@ -61,6 +60,7 @@ run('program5.txt', (nextValue, send, error) => {
     expr.operator = nextValue()
   }
 
+  // ? лишняя проверка
   if (expr.operationsCount) {
     return
   }
