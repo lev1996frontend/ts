@@ -19,15 +19,6 @@ type Expression = {
 }
 
 const stack: Expression[] = []
-// {
-//   n: 0,
-//   operator: Operation.plus,
-//   count: 1
-// }
-
-
-
-// TODO: -s
 
 run('program5.txt', (nextValue, send, error) => {
   const operationsCount = nextValue()
@@ -52,18 +43,7 @@ run('program5.txt', (nextValue, send, error) => {
     return send(n)
   }
 
-  if (expr.operator) {
-    expr.result = calculate(expr.result, expr.operator, n)
-    expr.operationsCount--
-  } else {
-    expr.result = n
-    expr.operator = nextValue()
-  }
-
-  // ? лишняя проверка
-  if (expr.operationsCount) {
-    return
-  }
+  calculateExpression(expr, n)
 
   let rightExpr = expr
   while (stack.length > 0 && rightExpr.operationsCount === 0) {
@@ -73,20 +53,22 @@ run('program5.txt', (nextValue, send, error) => {
       return send(rightExpr.result)
     }
 
-    // TODO: function
-    if (leftExpr.operator) {
-      leftExpr.result = calculate(leftExpr.result, leftExpr.operator, rightExpr.result)
-      leftExpr.operationsCount--
-    } else {
-      leftExpr.result = rightExpr.result
-    }
-
+    calculateExpression(leftExpr, rightExpr.result)
     rightExpr = leftExpr
   }
 
   rightExpr.operator = nextValue()
 
   // functions
+
+  function calculateExpression(expr: Expression, n: number) {
+    if (expr.operator) {
+      expr.result = calculate(expr.result, expr.operator, n)
+      expr.operationsCount--
+    } else {
+      expr.result = n
+    }
+  }
 
   function calculate(n1: number, operation: Operation, n2: number): number {
     switch (operation) {

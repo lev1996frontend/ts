@@ -26,10 +26,10 @@ describe('sum', () => {
   })
 })
 
-// TODO: если приняли done - завершение после её вызова, иначе ждём промис/синхронную функцию
-async function superTest(test: (done?: () => void) => void | Promise<void>) {
+// пример: если приняли done - завершение после её вызова, иначе ждём промис/синхронную функцию
+function superTest(test: (done?: () => void) => void | Promise<void>) {
   if (test.length === 0) {
-    await test()
+    return test()
   } else {
     return new Promise<void>(test)
   }
@@ -39,10 +39,3 @@ superTest((done) => {
   // expect
   // done()
 })
-
-/*
-В следующий раз:
--таймеры
--снимки (snapshot)
--клссы
-*/
