@@ -23,6 +23,16 @@ describe('sum', () => {
 
     // setTimeout(() => done(), 1000)
     // return new Promise()
+
+    // test('toEqual example', () => {
+    //   expect({ a: undefined }).toEqual({});
+    //   // ✅ тест пройдет, потому что toEqual считает их эквивалентными
+    // });
+
+    // test('toStrictEqual example', () => {
+    //   expect({ a: undefined }).toStrictEqual({});
+    //   // ❌ тест не пройдет — свойства отличаются
+    // });
   })
 })
 

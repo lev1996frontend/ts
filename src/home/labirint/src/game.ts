@@ -89,6 +89,5 @@ export const startGame = async (consoleIO: InputOutput) => {
 	} else {
 		await consoleIO.print('Ты вышел из лабиринта на старте и проиграл...')
 	}
-
 	consoleIO.close()
 }

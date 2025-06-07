@@ -88,7 +88,11 @@ const closedDoorsFound = (currentCell: Location, player: Player): string => {
       hasDoors = true
     }
   }
-  return description
+  return (
+    hasDoors
+      ? description
+      : ''
+  )
 }
 
 const stepsCase = (stepsForward: number): string => {

@@ -1,103 +1,73 @@
-import { test, testScript } from '../../../tests'
+import { map } from '../src/resources/map'
+import { MazeGame } from './../src/maze/MazeGame'
+import { Player } from '../src/player'
 
-class Exit extends Error {}
+// MazeGame Player map
 
-const input = [
-  'A',
-  '2',
-]
+describe('лабиринт - перемещение игрока', () => {
+  test('на стартовую локацию', () => {
 
-// describe.skip('MazeGame', () => {
-//   test.skip('', () => {})
+    const player = createPlayer()
+    const maze = new MazeGame(map, player)
+    const movingDescription = maze.movePlayer('forward')
 
-  // test('player moving', async () => {
-  //   await startGame({
-  //     close() {},
-  //     async input(question) {
-  //       const inputText = input.shift()
-  //       if (!inputText) {
-  //         throw new Exit()
-  //       }
-  //       return inputText
-  //     },
-  //     async print(message) {},
-  //   })
-  // })
-// })
-testScript(__dirname, '../index.ts', [
-    test('One game, start player')
-    .input('Ваше имя: ', 'Иван')
-    .print(
-      'Добро пожаловать в лабиринт, Иван! Попробуй найти выход и не вернуться на старт ;)',
-      'Ты идешь 2 шага прямо, поворачиваешь налево, поворачиваешь направо, идешь прямо и выходишь на развилку.',
-      'Куда пойдёшь дальше?',
-      '1. прямо',
-      '2. направо',
-      '3. назад',
-     ' Выберите номер:',
-    )
-    .input('forward', 1)
-    .print('Ты идешь прямо, поворачиваешь направо, поворачиваешь налево, поворачиваешь налево, идешь прямо и выходишь на развилку.',
-    'Куда пойдёшь дальше?',
-    '1. прямо',
-    '2. направо',
-    '3. назад',
-   ' Выберите номер:',
-    )
+    expect(movingDescription).toMatchSnapshot()
+    expect(player.row).toBe(9)
+    expect(player.column).toBe(4)
+    // TODO: getAvailableMoveDirections
+  })
 
-    .input('forward', 1)
-    .print('Ты идешь прямо, поворачиваешь направо и выходишь на развилку.',
-    '1. налево',
-    '2. прямо',
-    '3. назад',
-   ' Выберите номер:',
-    )
+  // TODO: Ты поворачиваешь направо, "затем снова" поворачиваешь направо...
+  test.skip('к закрытой двери без ключа', () => {
+    const player = createPlayer({
+      row: 8,
+      column: 6,
+      lookDirection: 'top',
+    })
+    const maze = new MazeGame(map, player)
+    const movingDescription = maze.movePlayer('right')
 
-    .input('left', 1)
-    .print('Ты поворачиваешь налево и оказываешься в тупике. ',
-      'Куда пойдёшь дальше?'
-    )
+    expect(movingDescription).toMatchSnapshot()
+    expect(player.row).toBe(10)
+    expect(player.column).toBe(9)
+    // TODO: getAvailableMoveDirections
+  })
 
-    .input('back', 1)
-    .print('У тебя недостаточно ключей для открытия двери.')
+  test.skip('к закрытой двери с ключом', () => {
+    const player = createPlayer({
+      row: 8,
+      column: 6,
+      lookDirection: 'top',
+      keys: [1],
+    })
+    const maze = new MazeGame(map, player)
+    const movingDescription = maze.movePlayer('right')
 
-    .input('right', 2)
-    .print('Ты идешь прямо, поворачиваешь направо и выходишь на развилку.',
-    'Куда пойдёшь дальше?',
-    '1. налево',
-    '2. направо',
-    '3. назад',
-   ' Выберите номер:',
-    )
+    expect(movingDescription).toMatchSnapshot()
+    expect(player.row).toBe(10)
+    expect(player.column).toBe(10)
+    // TODO: getAvailableMoveDirections
 
-    .input('up', 1)
-    .print('Ты поворачиваешь направо, поворачиваешь налево и выходишь на развилку.',
-    'Куда пойдёшь дальше?',
-    '1. налево',
-    '2. прямо',
-    '3. назад',
-   ' Выберите номер:',
-  ),
+    expect(player.doorsOpened).toContain(1)
+    expect(player.keys).toContain(2)
+  })
 
+  // TODO: выход из лабиринта на старте (проигрыш)
+  // TODO: выход из лабиринта в конце (выигрыш)
+})
 
-  test('Restart Game')
-    .input('Ваше имя: ', 'Иван')
-    .print(
-      'Начать с места остановки или сначала?'
-    )
-    .input('начать сначала', 1)
-    .print('Добро пожаловать в лабиринт! Попробуй найти выход и не вернуться на старт ;)',
-      'Ты идешь 2 шага прямо, поворачиваешь налево, поворачиваешь направо, идешь прямо и выходишь на развилку.'
-  ),
+function createPlayer(player: Partial<Player> = {}): Player {
+  return {
+    name: 'playerName',
+    row: map.start.row,
+    column: map.start.column,
+    lookDirection: map.getStartLookDirection(),
+    keys: [],
+    doorsOpened: [],
+    ...player,
+  }
+}
 
-  test('Save and Load Game')
-    .input('Ваше имя: ', 'Иван')
-    .print(
-      'Добро пожаловать в лабиринт, Иван! Попробуй найти выход и не вернуться на старт ;)',
-      'Ты идешь 2 шага прямо, поворачиваешь налево, поворачиваешь направо, идешь прямо и выходишь на развилку.',
-      'Куда пойдёшь дальше?'
-    )
-    .input('save', 1)
-    .input('load', 1)
-    .print('С возвращением в лабиринт! Ты остановился на развилке.')
-])
+const n1 = [1,2,3]
+const n2 = [4,5,6]
+const n3 = [...n1, ...n2]
